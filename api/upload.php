@@ -1,8 +1,6 @@
 <?php
 /**
  * TransAI Upload API — Upsert mode by rm_id
- * Updates existing projects, inserts new ones,
- * marks missing as deleted, restores previously deleted.
  */
 require_once __DIR__ . '/config.php';
 
@@ -17,6 +15,14 @@ if (!$input || !is_array($input)) {
 
 $projects = isset($input['projects']) ? $input['projects'] : array();
 $meta     = isset($input['meta']) ? $input['meta'] : array();
+
+// Debug: check first project keys
+if (!empty($projects[0])) {
+    $first = $projects[0];
+    error_log('[upload.php] Keys: ' . implode(', ', array_keys($first)));
+    error_log('[upload.php] createdDate=' . (isset($first['createdDate']) ? $first['createdDate'] : 'MISSING'));
+    error_log('[upload.php] updatedDate=' . (isset($first['updatedDate']) ? $first['updatedDate'] : 'MISSING'));
+}
 
 if (empty($projects) || !is_array($projects)) {
     errorResponse('No projects data provided');
@@ -88,9 +94,7 @@ try {
     }
 
     // Step 5: Upsert projects
-    $inserted = 0;
-    $updated  = 0;
-    $restored = 0;
+    $inserted = 0; $updated = 0; $restored = 0;
 
     $updStmt = $pdo->prepare("
         UPDATE projects SET
@@ -103,6 +107,7 @@ try {
             rm_status = :rm_status, db_status = :db_status, db_leader = :db_leader, db_responsible = :db_responsible,
             labor_claimed = :labor_claimed, reduction_actual = :reduction_actual, release_other = :release_other,
             reduction_date = :reduction_date,
+            created_date = :created_date, updated_date = :updated_date,
             ai_verdict = :ai_verdict, ai_reasoning = :ai_reasoning,
             is_deleted = 0, deleted_at = NULL
         WHERE rm_id = :rm_id
@@ -117,6 +122,7 @@ try {
             economic_effect, delta, non_material_effect,
             rm_status, db_status, db_leader, db_responsible,
             labor_claimed, reduction_actual, release_other, reduction_date,
+            created_date, updated_date,
             ai_verdict, ai_reasoning
         ) VALUES (
             :rm_id, :link, :name, :topic, :department,
@@ -126,6 +132,7 @@ try {
             :economic_effect, :delta, :non_material_effect,
             :rm_status, :db_status, :db_leader, :db_responsible,
             :labor_claimed, :reduction_actual, :release_other, :reduction_date,
+            :created_date, :updated_date,
             :ai_verdict, :ai_reasoning
         )
     ");
@@ -172,6 +179,8 @@ try {
             ':reduction_actual' => isset($project['reductionActual']) ? $project['reductionActual'] : 0,
             ':release_other'    => isset($project['releaseOther']) ? $project['releaseOther'] : 0,
             ':reduction_date'   => isset($project['reductionDate']) ? $project['reductionDate'] : '',
+            ':created_date'     => isset($project['createdDate']) ? $project['createdDate'] : '',
+            ':updated_date'     => isset($project['updatedDate']) ? $project['updatedDate'] : '',
             ':ai_verdict'       => $aiVerdict,
             ':ai_reasoning'     => $aiReasoning,
         );
@@ -222,7 +231,6 @@ try {
 
     $pdo->commit();
 
-    // Stats
     $recommended = 0; $notRecommended = 0; $noData = 0;
     foreach ($uploadedRmIds as $rmId) {
         if (isset($verdictMap[$rmId])) {
