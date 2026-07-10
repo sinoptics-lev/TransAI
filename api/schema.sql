@@ -10,11 +10,12 @@ CREATE DATABASE IF NOT EXISTS trans_ai_bd
 USE trans_ai_bd;
 
 -- ------------------------------------------------------------
--- Projects (upsert by rm_id, soft-delete via is_deleted)
+-- Projects (soft-delete via is_deleted flag, upsert by rm_id)
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS projects (
   id               INT AUTO_INCREMENT PRIMARY KEY,
-  rm_id            INT NOT NULL DEFAULT 0 COMMENT 'Original RM issue id (unique key)',
+  batch_id         INT NOT NULL DEFAULT 0,
+  rm_id            INT NOT NULL DEFAULT 0 COMMENT 'Original ID from RM (unique key)',
   link             VARCHAR(500) DEFAULT '',
   name             VARCHAR(500) NOT NULL,
   topic            VARCHAR(500) DEFAULT '',
@@ -42,8 +43,10 @@ CREATE TABLE IF NOT EXISTS projects (
   reduction_actual DECIMAL(12,2) DEFAULT 0,
   release_other    DECIMAL(12,2) DEFAULT 0,
   reduction_date   VARCHAR(50) DEFAULT '',
-  ai_verdict       VARCHAR(100) DEFAULT 'Нет данных',
-  ai_reasoning     TEXT,
+  created_date     VARCHAR(50) DEFAULT '' COMMENT 'Дата создания проекта (столбец N)',
+  updated_date     VARCHAR(50) DEFAULT '' COMMENT 'Дата последнего изменения (столбец O)',
+  ai_verdict       VARCHAR(100) DEFAULT 'Нет данных' COMMENT 'рекомендован/не рекомендован/Нет данных',
+  ai_reasoning     TEXT COMMENT 'AI analysis reasoning text',
   is_deleted       TINYINT(1) DEFAULT 0,
   deleted_at       DATETIME NULL,
   updated_at       DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -74,7 +77,7 @@ CREATE TABLE IF NOT EXISTS ai_analysis (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------
--- AI Reasoning (DeepSeek results, upsert by rm_id)
+-- AI Reasoning (DeepSeek analysis results, upsert by rm_id)
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS ai_reasoning (
   id          INT AUTO_INCREMENT PRIMARY KEY,
