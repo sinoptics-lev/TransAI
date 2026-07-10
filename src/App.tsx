@@ -310,8 +310,8 @@ function App() {
   // ===== Loading =====
   if (!checked || jsonLoading) {
     return (
-      <div className="min-h-screen bg-[#f0f4f8] flex items-center justify-center">
-        <div className="text-[#718096] text-lg">Загрузка данных...</div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-muted-foreground text-lg">Загрузка данных...</div>
       </div>
     );
   }
@@ -320,12 +320,12 @@ function App() {
   if (!data) {
     return (
       <TooltipProvider>
-        <div className="min-h-screen bg-[#f0f4f8] flex items-center justify-center">
+        <div className="min-h-screen bg-background flex items-center justify-center">
           <div className="w-full max-w-[600px] px-4">
-            <div className="text-[#1a202c] text-lg text-center mb-2 font-semibold">
+            <div className="text-foreground text-lg text-center mb-2 font-semibold">
               Загрузите данные из двух источников
             </div>
-            <div className="text-[#718096] text-[0.85rem] text-center mb-4">
+            <div className="text-muted-foreground text-[0.85rem] text-center mb-4">
               Файл РМ (issues) + Файл ДБ (Проекты 2026). Связь по ID проекта.
             </div>
             <FileUploader
@@ -339,8 +339,8 @@ function App() {
               fileNames={null}
               onClear={handleClearFiles}
             />
-            {uploadError && <div className="mt-2 text-[0.85rem] text-[#e02424] bg-[#fee2e2] rounded-lg px-3 py-2">{uploadError}</div>}
-            {dbSaveMessage && <div className="mt-2 text-[0.85rem] text-[#0e9f6e] bg-[#f0fdf4] rounded-lg px-3 py-2">{dbSaveMessage}</div>}
+            {uploadError && <div className="mt-2 text-[0.85rem] text-destructive bg-destructive/10 rounded-lg px-3 py-2">{uploadError}</div>}
+            {dbSaveMessage && <div className="mt-2 text-[0.85rem] text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg px-3 py-2">{dbSaveMessage}</div>}
           </div>
         </div>
       </TooltipProvider>
@@ -356,19 +356,19 @@ function App() {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-[#f0f4f8] text-[#1a202c]">
-        <div className="max-w-[1400px] mx-auto px-6 py-6">
+      <div className="min-h-screen bg-background text-foreground">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-6">
           <Header />
 
           {/* File Upload — two files */}
           {/* API availability warning */}
           {apiAvailable === false && (
-            <div className="mb-3 flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 text-[0.8rem] text-amber-800">
+            <div className="mb-3 flex items-center gap-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg px-4 py-2 text-[0.8rem] text-amber-800 dark:text-amber-400">
               <ServerOff className="w-4 h-4 flex-shrink-0" />
               <span>
                 <strong>PHP API недоступно.</strong> Валидация XLSX и сохранение в БД отключены.
                 Дашборд работает в локальном режиме.
-                Для включения БД настройте PHP для папки <code className="bg-amber-100 px-1 rounded">api/</code> на хостинге.
+                Для включения БД настройте PHP для папки <code className="bg-amber-100 dark:bg-amber-900/40 px-1 rounded">api/</code> на хостинге.
               </span>
             </div>
           )}
@@ -389,8 +389,8 @@ function App() {
               onExportXLSX={handleExportXLSX}
               onExportFullReport={fullReportHandler}
             />
-            {uploadError && <div className="mt-2 text-[0.85rem] text-[#e02424] bg-[#fee2e2] rounded-lg px-3 py-2">{uploadError}</div>}
-            {dbSaveMessage && <div className="mt-2 text-[0.85rem] text-[#0e9f6e] bg-[#f0fdf4] rounded-lg px-3 py-2">{dbSaveMessage}</div>}
+            {uploadError && <div className="mt-2 text-[0.85rem] text-destructive bg-destructive/10 rounded-lg px-3 py-2">{uploadError}</div>}
+            {dbSaveMessage && <div className="mt-2 text-[0.85rem] text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg px-3 py-2">{dbSaveMessage}</div>}
           </div>
 
           {/* Sticky Filter Panel */}
