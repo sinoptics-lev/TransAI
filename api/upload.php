@@ -1,8 +1,8 @@
 <?php
 /**
- * TransAI Upload API
- * Receives parsed project data + AI analysis and stores in DB.
- * Sets ai_verdict based on AI XLSX data or 'Нет данных'.
+ * TransAI Upload API — Upsert mode by rm_id
+ * Updates existing projects, inserts new ones,
+ * marks missing as deleted, restores previously deleted.
  */
 require_once __DIR__ . '/config.php';
 
@@ -35,27 +35,36 @@ $pdo = getDbConnection();
 try {
     $pdo->beginTransaction();
 
-    // Step 1: Soft-delete existing projects
-    $pdo->prepare("UPDATE projects SET is_deleted = 1, deleted_at = NOW() WHERE is_deleted = 0")->execute();
+    // Step 1: Load all existing projects from DB
+    $existingStmt = $pdo->query("SELECT id, rm_id, is_deleted FROM projects");
+    $existingRows = $existingStmt->fetchAll();
 
-    // Step 2: Soft-delete existing AI analysis
-    $pdo->prepare("UPDATE ai_analysis SET is_deleted = 1, deleted_at = NOW() WHERE is_deleted = 0")->execute();
+    $dbByRmId = array();
+    $dbRmIds  = array();
+    foreach ($existingRows as $row) {
+        $rid = (int)$row['rm_id'];
+        $dbByRmId[$rid] = array('id' => (int)$row['id'], 'is_deleted' => (int)$row['is_deleted']);
+        $dbRmIds[] = $rid;
+    }
 
-    // Step 3: Create new upload batch
-    $stmt = $pdo->prepare("
-        INSERT INTO upload_batches (rm_filename, db_filename, ai_filename, total_records, notes)
-        VALUES (:rm_file, :db_file, :ai_file, :total, :notes)
-    ");
-    $stmt->execute(array(
-        ':rm_file' => isset($meta['rmFilename']) ? $meta['rmFilename'] : '',
-        ':db_file' => isset($meta['dbFilename']) ? $meta['dbFilename'] : '',
-        ':ai_file' => isset($meta['aiFilename']) ? $meta['aiFilename'] : '',
-        ':total'   => count($projects),
-        ':notes'   => isset($meta['notes']) ? $meta['notes'] : '',
-    ));
-    $batchId = (int)$pdo->lastInsertId();
+    // Step 2: Build map of uploaded rm_ids
+    $uploadedRmIds = array();
+    $projectByRmId = array();
+    foreach ($projects as $p) {
+        $rmId = 0;
+        if (!empty($p['link']) && is_string($p['link'])) {
+            if (preg_match('/\/issues\/(\d+)/', $p['link'], $m)) {
+                $rmId = (int)$m[1];
+            }
+        }
+        if ($rmId > 0) {
+            $uploadedRmIds[] = $rmId;
+            $projectByRmId[$rmId] = $p;
+        }
+    }
+    $uploadedRmIdsSet = array_flip($uploadedRmIds);
 
-    // Pre-compute verdicts from aiData
+    // Step 3: Pre-compute verdicts
     $verdictMap = array();
     if (!empty($input['aiData']) && is_array($input['aiData'])) {
         foreach ($input['aiData'] as $rmIdStr => $analysis) {
@@ -65,10 +74,43 @@ try {
         }
     }
 
-    // Step 4: Insert projects WITH ai_verdict
-    $stmt = $pdo->prepare("
+    // Step 4: Mark DB projects NOT in upload as deleted
+    $toDelete = array();
+    foreach ($dbRmIds as $rid) {
+        if (!isset($uploadedRmIdsSet[$rid])) {
+            $toDelete[] = $rid;
+        }
+    }
+    if (!empty($toDelete)) {
+        $placeholders = implode(',', array_fill(0, count($toDelete), '?'));
+        $delStmt = $pdo->prepare("UPDATE projects SET is_deleted = 1, deleted_at = NOW() WHERE rm_id IN ($placeholders)");
+        $delStmt->execute($toDelete);
+    }
+
+    // Step 5: Upsert projects
+    $inserted = 0;
+    $updated  = 0;
+    $restored = 0;
+
+    $updStmt = $pdo->prepare("
+        UPDATE projects SET
+            name = :name, topic = :topic, department = :department,
+            link = :link, start_date = :start_date, end_date = :end_date,
+            effects = :effects, effect_type = :effect_type, effect_amount = :effect_amount,
+            labor_release = :labor_release, reduction_plan = :reduction_plan, mingos = :mingos,
+            cost_fot = :cost_fot, cost_direct = :cost_direct, cost_infra = :cost_infra, cost_total = :cost_total,
+            economic_effect = :economic_effect, delta = :delta, non_material_effect = :non_material_effect,
+            rm_status = :rm_status, db_status = :db_status, db_leader = :db_leader, db_responsible = :db_responsible,
+            labor_claimed = :labor_claimed, reduction_actual = :reduction_actual, release_other = :release_other,
+            reduction_date = :reduction_date,
+            ai_verdict = :ai_verdict, ai_reasoning = :ai_reasoning,
+            is_deleted = 0, deleted_at = NULL
+        WHERE rm_id = :rm_id
+    ");
+
+    $insStmt = $pdo->prepare("
         INSERT INTO projects (
-            batch_id, rm_id, link, name, topic, department,
+            rm_id, link, name, topic, department,
             start_date, end_date, effects, effect_type, effect_amount,
             labor_release, reduction_plan, mingos,
             cost_fot, cost_direct, cost_infra, cost_total,
@@ -77,7 +119,7 @@ try {
             labor_claimed, reduction_actual, release_other, reduction_date,
             ai_verdict, ai_reasoning
         ) VALUES (
-            :batch_id, :rm_id, :link, :name, :topic, :department,
+            :rm_id, :link, :name, :topic, :department,
             :start_date, :end_date, :effects, :effect_type, :effect_amount,
             :labor_release, :reduction_plan, :mingos,
             :cost_fot, :cost_direct, :cost_infra, :cost_total,
@@ -88,22 +130,11 @@ try {
         )
     ");
 
-    $aiInserted = 0;
-    foreach ($projects as $project) {
-        $rmId = 0;
-        if (!empty($project['link']) && is_string($project['link'])) {
-            if (preg_match('/\/issues\/(\d+)/', $project['link'], $matches)) {
-                $rmId = (int)$matches[1];
-            }
-        }
-
-        // Determine verdict
+    foreach ($projectByRmId as $rmId => $project) {
         $aiVerdict = 'Нет данных';
         $aiReasoning = 'Данные ИИ-анализа отсутствуют';
-
         if (isset($verdictMap[$rmId]) && $verdictMap[$rmId] !== 'Нет данных') {
             $aiVerdict = $verdictMap[$rmId];
-            // Build reasoning from AI columns
             $aiCols = $input['aiData'][(string)$rmId] ?? array();
             $lines = array();
             foreach ($aiCols as $colName => $colValue) {
@@ -112,8 +143,7 @@ try {
             $aiReasoning = implode("\n", $lines);
         }
 
-        $stmt->execute(array(
-            ':batch_id'         => $batchId,
+        $params = array(
             ':rm_id'            => $rmId,
             ':link'             => isset($project['link']) ? $project['link'] : '',
             ':name'             => isset($project['name']) ? $project['name'] : '',
@@ -144,74 +174,77 @@ try {
             ':reduction_date'   => isset($project['reductionDate']) ? $project['reductionDate'] : '',
             ':ai_verdict'       => $aiVerdict,
             ':ai_reasoning'     => $aiReasoning,
-        ));
-        $aiInserted++;
+        );
+
+        if (isset($dbByRmId[$rmId])) {
+            $updStmt->execute($params);
+            if ($dbByRmId[$rmId]['is_deleted'] === 1) {
+                $restored++;
+            } else {
+                $updated++;
+            }
+        } else {
+            $insStmt->execute($params);
+            $inserted++;
+        }
     }
 
-    // Step 5: Insert AI analysis key-value pairs (optional, for reference)
+    // Step 6: Upsert AI analysis
     if (!empty($input['aiData']) && is_array($input['aiData'])) {
         $aiStmt = $pdo->prepare("
-            INSERT INTO ai_analysis (batch_id, project_id, rm_id, col_name, col_value)
-            VALUES (:batch_id, :project_id, :rm_id, :col_name, :col_value)
+            INSERT INTO ai_analysis (rm_id, col_name, col_value)
+            VALUES (:rm_id, :col_name, :col_value)
+            ON DUPLICATE KEY UPDATE
+                col_value = VALUES(col_value),
+                is_deleted = 0,
+                deleted_at = NULL,
+                updated_at = NOW()
         ");
-
-        // Need to rebuild project_id map
-        $stmt2 = $pdo->prepare("SELECT id, rm_id FROM projects WHERE batch_id = :bid AND is_deleted = 0 ORDER BY id ASC");
-        $stmt2->execute([':bid' => $batchId]);
-        $idMap = array();
-        while ($row = $stmt2->fetch()) {
-            $idMap[(int)$row['rm_id']] = (int)$row['id'];
-        }
 
         foreach ($input['aiData'] as $rmIdStr => $analysis) {
             if (!is_array($analysis)) continue;
             $rmId = (int)$rmIdStr;
-            $projectDbId = isset($idMap[$rmId]) ? $idMap[$rmId] : 0;
-            if ($projectDbId === 0) continue;
-
             foreach ($analysis as $colName => $colValue) {
                 $aiStmt->execute(array(
-                    ':batch_id'   => $batchId,
-                    ':project_id' => $projectDbId,
                     ':rm_id'      => $rmId,
                     ':col_name'   => $colName,
                     ':col_value'  => is_string($colValue) ? $colValue : json_encode($colValue),
                 ));
             }
         }
+
+        if (!empty($toDelete)) {
+            $delAiPlaceholders = implode(',', array_fill(0, count($toDelete), '?'));
+            $delAiStmt = $pdo->prepare("UPDATE ai_analysis SET is_deleted = 1, deleted_at = NOW() WHERE rm_id IN ($delAiPlaceholders)");
+            $delAiStmt->execute($toDelete);
+        }
     }
 
     $pdo->commit();
 
-    // Count verdict stats
-    $recommended = 0;
-    $notRecommended = 0;
-    $noData = 0;
-    foreach ($projects as $project) {
-        $rmId = 0;
-        if (!empty($project['link']) && is_string($project['link'])) {
-            if (preg_match('/\/issues\/(\d+)/', $project['link'], $matches)) {
-                $rmId = (int)$matches[1];
-            }
-        }
+    // Stats
+    $recommended = 0; $notRecommended = 0; $noData = 0;
+    foreach ($uploadedRmIds as $rmId) {
         if (isset($verdictMap[$rmId])) {
-            if ($verdictMap[$rmId] === 'рекомендован к внедрению') $recommended++;
-            else $notRecommended++;
+            $v = $verdictMap[$rmId];
+            if ($v === 'рекомендован к внедрению' || $v === 'однозначно рекомендуется' || $v === 'рекомендуется с учетом социальной направленности' || $v === 'рекомендуется с учетом внесения изменений') {
+                $recommended++;
+            } else {
+                $notRecommended++;
+            }
         } else {
             $noData++;
         }
     }
 
     successResponse(array(
-        'batchId'         => $batchId,
-        'inserted'        => count($projects),
-        'previousDeleted' => 0,
-        'verdictStats'    => array(
-            'recommended'    => $recommended,
-            'notRecommended' => $notRecommended,
-            'noData'         => $noData,
-        ),
-        'message'         => "Uploaded " . count($projects) . " projects. Verdicts: {$recommended} recommended, {$notRecommended} not recommended, {$noData} no data."
+        'inserted'       => $inserted,
+        'updated'        => $updated,
+        'restored'       => $restored,
+        'deleted'        => count($toDelete),
+        'totalProcessed' => count($uploadedRmIds),
+        'verdictStats'   => array('recommended' => $recommended, 'notRecommended' => $notRecommended, 'noData' => $noData),
+        'message'        => "Обработано " . count($uploadedRmIds) . " проектов: {$inserted} новых, {$updated} обновлено, {$restored} восстановлено, " . count($toDelete) . " удалено.",
     ));
 
 } catch (Exception $e) {
@@ -219,44 +252,13 @@ try {
     errorResponse('Upload failed: ' . $e->getMessage(), 500);
 }
 
-// ============================================================
-// Extract verdict from AI analysis values using pattern matching
-// ============================================================
 function extractVerdictFromAI($analysis) {
-    $positivePatterns = array(
-        'однозначно рекомендуется',
-        'рекомендован к внедрению',
-        'рекомендуется к внедрению',
-        'рекомендуется',
-        'рекомендован',
-        'целесообразно',
-        'эффективен',
-        'положительная дельта',
-        'окупаемость',
-    );
-    $negativePatterns = array(
-        'не рекомендован к внедрению',
-        'не рекомендуется',
-        'не рекомендован',
-        'нецелесообразно',
-        'неэффективен',
-        'отрицательная дельта',
-        'не окупается',
-    );
-
+    $positivePatterns = array('однозначно рекомендуется','рекомендован к внедрению','рекомендуется к внедрению','рекомендуется','рекомендован','целесообразно','эффективен','положительная дельта','окупаемость');
+    $negativePatterns = array('не рекомендован к внедрению','не рекомендуется','не рекомендован','нецелесообразно','неэффективен','отрицательная дельта','не окупается');
     foreach ($analysis as $value) {
         $val = mb_strtolower((string)$value);
-        foreach ($negativePatterns as $pattern) {
-            if (mb_stripos($val, $pattern) !== false) {
-                return 'не рекомендован к внедрению';
-            }
-        }
-        foreach ($positivePatterns as $pattern) {
-            if (mb_stripos($val, $pattern) !== false) {
-                return 'рекомендован к внедрению';
-            }
-        }
+        foreach ($negativePatterns as $pattern) { if (mb_stripos($val, $pattern) !== false) return 'не рекомендован к внедрению'; }
+        foreach ($positivePatterns as $pattern) { if (mb_stripos($val, $pattern) !== false) return 'рекомендован к внедрению'; }
     }
-
     return 'Нет данных';
 }
