@@ -71,14 +71,14 @@ function App() {
       });
     }
     if (deptFilter) result = result.filter(p => p.department === deptFilter);
-    if (mingosFilter === 'yes') result = result.filter(p => p.mingos === '\u0414\u0430');
-    if (mingosFilter === 'no') result = result.filter(p => p.mingos === '\u041d\u0435\u0442');
+    if (mingosFilter === 'yes') result = result.filter(p => p.mingos === 'Да');
+    if (mingosFilter === 'no') result = result.filter(p => p.mingos === 'Нет');
     if (efficiencyFilter !== 'all') result = result.filter(p => getEfficiencyCategory(p.delta) === efficiencyFilter);
     if (hasEffectFilter === 'yes') result = result.filter(p => p.effectAmount > 0);
     if (hasEffectFilter === 'no') result = result.filter(p => p.effectAmount === 0);
     if (verdictFilter !== 'all') {
       result = result.filter(p => {
-        const v = (p.aiVerdict || '\u041d\u0435\u0442 \u0434\u0430\u043d\u043d\u044b\u0445').toLowerCase();
+        const v = (p.aiVerdict || 'Нет данных').toLowerCase();
         return v === verdictFilter.toLowerCase();
       });
     }
@@ -137,12 +137,12 @@ function App() {
           rmFilename: rmFile.name, dbFilename: dbFile.name, aiFilename: aiFile?.name,
         }, Object.keys(aiData).length > 0 ? aiData : undefined);
         if (uploadResult.ok) {
-          setDbSaveMessage('\u0410\u0432\u0442\u043e\u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u0435 \u0432 \u0411\u0414: ' + uploadResult.message);
+          setDbSaveMessage('Автосохранение в БД: ' + uploadResult.message);
         } else {
-          setDbSaveMessage('\u0411\u0414: ' + uploadResult.message);
+          setDbSaveMessage('БД: ' + uploadResult.message);
         }
       } catch {
-        setDbSaveMessage('\u0411\u0414 \u043d\u0435\u0434\u043e\u0441\u0442\u0443\u043f\u043d\u0430');
+        setDbSaveMessage('БД недоступна');
       } finally {
         setSaveToDbLoading(false);
       }
@@ -151,7 +151,7 @@ function App() {
 
   const handleSaveToDatabase = useCallback(async (rmFile: File, dbFile: File, aiFile?: File) => {
     if (!effectiveProjects || effectiveProjects.length === 0) {
-      setUploadError('\u041d\u0435\u0442 \u0434\u0430\u043d\u043d\u044b\u0445 \u0434\u043b\u044f \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u044f.');
+      setUploadError('Нет данных для сохранения. Сначала загрузите файлы.');
       return;
     }
     const aiData: AIAnalysisMap = {};
@@ -170,9 +170,9 @@ function App() {
         rmFilename: rmFile.name, dbFilename: dbFile.name, aiFilename: aiFile?.name,
       }, Object.keys(aiData).length > 0 ? aiData : undefined);
       if (result.ok) { setDbSaveMessage(result.message); }
-      else { setUploadError(result.error || '\u041e\u0448\u0438\u0431\u043a\u0430 \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u044f'); }
+      else { setUploadError(result.error || 'Ошибка сохранения в базу данных'); }
     } catch (err) {
-      setUploadError('\u041e\u0448\u0438\u0431\u043a\u0430: ' + (err instanceof Error ? err.message : String(err)));
+      setUploadError('Ошибка сохранения: ' + (err instanceof Error ? err.message : String(err)));
     } finally { setSaveToDbLoading(false); }
   }, [effectiveProjects]);
 
@@ -207,7 +207,7 @@ function App() {
         const uploadResult = await uploadProjects(updated, {
           rmFilename: sessionFileNames?.rm || '', dbFilename: sessionFileNames?.db || '', aiFilename: aiFile.name,
         }, aiData);
-        if (uploadResult.ok) setDbSaveMessage('\u0418\u0418-\u0430\u043d\u0430\u043b\u0438\u0437 \u0441\u043e\u0445\u0440\u0430\u043d\u0451\u043d');
+        if (uploadResult.ok) setDbSaveMessage('ИИ-анализ сохранён: ' + uploadResult.message);
       } catch { } finally { setSaveToDbLoading(false); }
     }
   }, [effectiveProjects, saveToStorage, sessionFileNames]);
@@ -242,8 +242,8 @@ function App() {
 
   if (!checked || jsonLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-muted-foreground text-lg">\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430 \u0434\u0430\u043d\u043d\u044b\u0445...</div>
+      <div className="min-h-screen bg-[#f5f6f8] flex items-center justify-center">
+        <div className="text-[#a0aec0] text-lg">Загрузка данных...</div>
       </div>
     );
   }
@@ -251,13 +251,13 @@ function App() {
   if (!data) {
     return (
       <TooltipProvider>
-        <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="min-h-screen bg-[#f5f6f8] flex items-center justify-center">
           <div className="w-full max-w-[600px] px-4">
-            <div className="text-foreground text-lg text-center mb-2 font-semibold">\u0417\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u0435 \u0434\u0430\u043d\u043d\u044b\u0435 \u0438\u0437 \u0434\u0432\u0443\u0445 \u0438\u0441\u0442\u043e\u0447\u043d\u0438\u043a\u043e\u0432</div>
-            <div className="text-muted-foreground text-[0.85rem] text-center mb-4">\u0424\u0430\u0439\u043b \u0420\u041c (issues) + \u0424\u0430\u0439\u043b \u0414\u0411 (\u041f\u0440\u043e\u0435\u043a\u0442\u044b 2026)</div>
+            <div className="text-[#1a202c] text-lg text-center mb-2 font-semibold">Загрузите данные из двух источников</div>
+            <div className="text-[#718096] text-[0.85rem] text-center mb-4">Файл РМ (issues) + Файл ДБ (Проекты 2026). Связь по ID проекта.</div>
             <FileUploader onFilesLoad={handleFilesLoad} onAIFileLoad={handleAIFileLoad} onSaveToDatabase={apiAvailable ? handleSaveToDatabase : undefined} hasProjectData={false} isLoading={uploadLoading} aiLoading={aiLoading} saveToDbLoading={saveToDbLoading} fileNames={null} onClear={handleClearFiles} />
-            {uploadError && <div className="mt-2 text-[0.85rem] text-destructive bg-destructive/10 rounded-lg px-3 py-2">{uploadError}</div>}
-            {dbSaveMessage && <div className="mt-2 text-[0.85rem] text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 rounded-lg px-3 py-2">{dbSaveMessage}</div>}
+            {uploadError && <div className="mt-2 text-[0.85rem] text-[#e53e3e] bg-[#fff5f5] rounded-lg px-3 py-2">{uploadError}</div>}
+            {dbSaveMessage && <div className="mt-2 text-[0.85rem] text-[#0e9f6e] bg-[#f0fdf4] rounded-lg px-3 py-2">{dbSaveMessage}</div>}
           </div>
         </div>
       </TooltipProvider>
@@ -272,13 +272,13 @@ function App() {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-background text-foreground">
+      <div className="min-h-screen bg-[#f5f6f8] text-[#1a202c]">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-6">
           <Header />
           {apiAvailable === false && (
-            <div className="mb-3 flex items-center gap-2 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg px-4 py-2 text-[0.8rem] text-amber-800 dark:text-amber-300">
+            <div className="mb-3 flex items-center gap-2 bg-[#fffbeb] border border-[#fcd34d] rounded-lg px-4 py-2 text-[0.8rem] text-[#92400e]">
               <ServerOff className="w-4 h-4 flex-shrink-0" />
-              <span><strong>PHP API \u043d\u0435\u0434\u043e\u0441\u0442\u0443\u043f\u043d\u043e.</strong> \u0412\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u044f XLSX \u0438 \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u0435 \u0432 \u0411\u0414 \u043e\u0442\u043a\u043b\u044e\u0447\u0435\u043d\u044b.</span>
+              <span><strong>PHP API недоступно.</strong> Валидация XLSX и сохранение в БД отключены. Дашборд работает в локальном режиме. Для включения БД настройте PHP для папки <code className="bg-[#fef3c7] px-1 rounded">api/</code> на хостинге.</span>
             </div>
           )}
           <div className="mb-4">
@@ -297,8 +297,8 @@ function App() {
               onExportXLSX={handleExportXLSX}
               onExportFullReport={fullReportHandler}
             />
-            {uploadError && <div className="mt-2 text-[0.85rem] text-destructive bg-destructive/10 rounded-lg px-3 py-2">{uploadError}</div>}
-            {dbSaveMessage && <div className="mt-2 text-[0.85rem] text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 rounded-lg px-3 py-2">{dbSaveMessage}</div>}
+            {uploadError && <div className="mt-2 text-[0.85rem] text-[#e53e3e] bg-[#fff5f5] rounded-lg px-3 py-2">{uploadError}</div>}
+            {dbSaveMessage && <div className="mt-2 text-[0.85rem] text-[#0e9f6e] bg-[#f0fdf4] rounded-lg px-3 py-2">{dbSaveMessage}</div>}
           </div>
           <FilterPanel
             departments={data.departmentList}
