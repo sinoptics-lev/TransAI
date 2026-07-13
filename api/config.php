@@ -1,7 +1,8 @@
 <?php
 /**
  * TransAI Database Configuration
- * Reads credentials from .env file or uses defaults
+ * All credentials are read from .env file in the project root.
+ * No hardcoded credentials — .env is the single source of truth.
  */
 
 // Suppress all errors to prevent corrupting JSON output
@@ -20,37 +21,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-// Database configuration defaults
-$dbConfig = array(
-    'host'     => 'localhost',
-    'database' => 'trans_ai_bd',
-    'user'     => 'root',
-    'password' => '',
-    'charset'  => 'utf8mb4'
-);
-
-// Try to load from .env file
-$envFile = __DIR__ . '/../.env';
-if (file_exists($envFile)) {
-    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    if ($lines) {
-        foreach ($lines as $line) {
-            $line = trim($line);
-            if (strpos($line, '#') === 0) continue;
-            if (strpos($line, '=') === false) continue;
-            list($key, $value) = explode('=', $line, 2);
-            $key = trim($key);
-            $value = trim($value);
-            switch ($key) {
-                case 'DB_HOST':     $dbConfig['host'] = $value; break;
-                case 'DB_DATABASE': $dbConfig['database'] = $value; break;
-                case 'DB_USER':     $dbConfig['user'] = $value; break;
-                case 'DB_PASSWORD': $dbConfig['password'] = $value; break;
-                case 'DB_CHARSET':  $dbConfig['charset'] = $value; break;
+/**
+ * Load a key from .env file. Returns null if not found.
+ */
+function env(string $key, ?string $default = null): ?string {
+    static $envCache = null;
+    if ($envCache === null) {
+        $envCache = array();
+        $envFile = __DIR__ . '/../.env';
+        if (file_exists($envFile)) {
+            $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            if ($lines) {
+                foreach ($lines as $line) {
+                    $line = trim($line);
+                    if ($line === '' || strpos($line, '#') === 0) continue;
+                    if (strpos($line, '=') === false) continue;
+                    list($k, $v) = explode('=', $line, 2);
+                    $envCache[trim($k)] = trim($v);
+                }
             }
         }
     }
+    return array_key_exists($key, $envCache) ? $envCache[$key] : $default;
 }
+
+// Build DB config exclusively from .env
+$dbConfig = array(
+    'host'     => env('DB_HOST', 'localhost'),
+    'database' => env('DB_DATABASE', env('DB_NAME', 'trans_ai_bd')),
+    'user'     => env('DB_USER', 'root'),
+    'password' => env('DB_PASSWORD', env('DB_PASS', '')),
+    'charset'  => env('DB_CHARSET', 'utf8mb4'),
+);
 
 // PDO connection
 function getDbConnection() {
