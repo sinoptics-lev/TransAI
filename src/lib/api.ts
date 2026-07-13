@@ -135,7 +135,7 @@ async function safeJsonParse(response: Response): Promise<unknown | null> {
  */
 export async function validateSingleFile(file: File, type: 'rm' | 'db' | 'ai'): Promise<SingleValidationResult> {
   if (type === 'ai') {
-    return { ok: true, valid: true, headers: [], missing: [], message: '✓ Загружен' };
+    return { ok: true, valid: true, headers: [], missing: [], message: '\u2713 \u0417\u0430\u0433\u0440\u0443\u0436\u0435\u043d' };
   }
 
   const available = await isApiAvailable();
@@ -146,7 +146,7 @@ export async function validateSingleFile(file: File, type: 'rm' | 'db' | 'ai'): 
       valid: true,
       headers: [],
       missing: [],
-      message: 'PHP недоступен. Валидация пропущена.',
+      message: 'PHP \u043d\u0435\u0434\u043e\u0441\u0442\u0443\u043f\u0435\u043d. \u0412\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u044f \u043f\u0440\u043e\u043f\u0443\u0449\u0435\u043d\u0430.',
     };
   }
 
@@ -177,7 +177,7 @@ export async function validateSingleFile(file: File, type: 'rm' | 'db' | 'ai'): 
         valid: true,
         headers: [],
         missing: [],
-        message: 'Сервер не поддерживает валидацию. Пропущено.',
+        message: '\u0421\u0435\u0440\u0432\u0435\u0440 \u043d\u0435 \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u0442 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u044e. \u041f\u0440\u043e\u043f\u0443\u0449\u0435\u043d\u043e.',
       };
     }
 
@@ -208,7 +208,7 @@ export async function validateSingleFile(file: File, type: 'rm' | 'db' | 'ai'): 
       valid: true,
       headers: [],
       missing: [],
-      message: 'Ошибка сети. Валидация пропущена.',
+      message: '\u041e\u0448\u0438\u0431\u043a\u0430 \u0441\u0435\u0442\u0438. \u0412\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u044f \u043f\u0440\u043e\u043f\u0443\u0449\u0435\u043d\u0430.',
     };
   }
 }
@@ -228,8 +228,8 @@ export async function uploadProjects(
       batchId: 0,
       inserted: 0,
       previousDeleted: 0,
-      message: 'PHP API недоступен. Сохранение в БД невозможно.',
-      error: 'API недоступно',
+      message: 'PHP API \u043d\u0435\u0434\u043e\u0441\u0442\u0443\u043f\u0435\u043d. \u0421\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u0435 \u0432 \u0411\u0414 \u043d\u0435\u0432\u043e\u0437\u043c\u043e\u0436\u043d\u043e.',
+      error: 'API \u043d\u0435\u0434\u043e\u0441\u0442\u0443\u043f\u043d\u043e',
     };
   }
 
@@ -239,6 +239,14 @@ export async function uploadProjects(
     const payload: Record<string, unknown> = { projects, meta };
     if (aiData && Object.keys(aiData).length > 0) {
       payload.aiData = aiData;
+    }
+
+    // Debug: log first project keys before sending
+    if (Array.isArray(projects) && projects.length > 0) {
+      const first = projects[0] as Record<string, unknown>;
+      console.log('[API] Upload first project keys:', Object.keys(first));
+      console.log('[API] createdDate:', first.createdDate ?? 'MISSING');
+      console.log('[API] updatedDate:', first.updatedDate ?? 'MISSING');
     }
 
     const response = await fetch(`${API_BASE}/upload.php`, {
@@ -256,7 +264,7 @@ export async function uploadProjects(
         batchId: 0,
         inserted: 0,
         previousDeleted: 0,
-        message: 'Сервер не поддерживает PHP.',
+        message: '\u0421\u0435\u0440\u0432\u0435\u0440 \u043d\u0435 \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u0442 PHP.',
         error: 'PHP not available',
       };
     }
@@ -286,7 +294,7 @@ export async function uploadProjects(
       batchId: 0,
       inserted: 0,
       previousDeleted: 0,
-      message: 'Ошибка: ' + (err instanceof Error ? err.message : String(err)),
+      message: '\u041e\u0448\u0438\u0431\u043a\u0430: ' + (err instanceof Error ? err.message : String(err)),
       error: err instanceof Error ? err.message : String(err),
     };
   }
