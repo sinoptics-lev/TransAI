@@ -1,15 +1,47 @@
+# TransAI API - Apache configuration for shared hosting
+
+# Force PHP execution
+<FilesMatch "\.php$">
+    SetHandler application/x-httpd-php
+</FilesMatch>
+
+# Disable error display (log instead)
+php_flag display_errors Off
+php_flag log_errors On
+
+# CORS headers for API access
+<IfModule mod_headers.c>
+    Header always set Access-Control-Allow-Origin "*"
+    Header always set Access-Control-Allow-Methods "GET, POST, OPTIONS"
+    Header always set Access-Control-Allow-Headers "Content-Type, Authorization"
+    Header always set Cache-Control "no-cache, no-store, must-revalidate"
+    Header always set Pragma "no-cache"
+</IfModule>
+
+# Handle preflight OPTIONS requests
 RewriteEngine On
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^ index.html [QSA,L]
+RewriteCond %{REQUEST_METHOD} OPTIONS
+RewriteRule ^(.*)$ $1 [R=200,L]
 
-# PHP settings
-php_value upload_max_filesize 50M
-php_value post_max_size 50M
-php_value max_execution_time 300
-php_value memory_limit 256M
+# Deny access to .env file
+<Files ".env">
+    Order allow,deny
+    Deny from all
+</Files>
 
-# CORS
-Header always set Access-Control-Allow-Origin "*"
-Header always set Access-Control-Allow-Methods "GET, POST, OPTIONS"
-Header always set Access-Control-Allow-Headers "Content-Type, Authorization"
+<FilesMatch "\.env$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Deny access to SQL files
+<FilesMatch "\.sql$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Deny access to log files
+<FilesMatch "\.log$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
