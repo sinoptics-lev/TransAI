@@ -77,6 +77,7 @@ export function AIAnalysisPanel({ project, activeTab = 'reasoning' }: Props) {
   const [saved, setSaved] = useState(false);
   const [dbReasoning, setDbReasoning] = useState<{ verdict: string; reasoning: string } | null>(null);
   const [dbLoading, setDbLoading] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const rmMatch = project.link.match(/\/issues\/(\d+)/);
   const rmId = rmMatch ? Number(rmMatch[1]) : 0;
@@ -98,7 +99,7 @@ export function AIAnalysisPanel({ project, activeTab = 'reasoning' }: Props) {
   }, [activeTab, rmId]);
 
   const handleAnalyze = async () => {
-    setLoading(true); setSaved(false); setAnalysis(null);
+    setLoading(true); setSaved(false); setSaveError(null); setAnalysis(null);
     try {
       const resp = await fetch('api/analyze.php', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -120,16 +121,22 @@ export function AIAnalysisPanel({ project, activeTab = 'reasoning' }: Props) {
   };
 
   const saveToDb = async (text: string) => {
-    if (rmId <= 0) return;
-    const verdict = parseVerdict(text);
+    if (rmId <= 0) { setSaveError('Нет ID проекта (rmId) — сохранение невозможно'); return; }
+    const verdict = parseVerdict(text) || 'Не определён';
     setSaving(true);
     try {
-      await fetch('api/ai_reasoning.php', {
+      const resp = await fetch('api/ai_reasoning.php', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rmId, verdict, reasoning: text }),
       });
-      setSaved(true); setDbReasoning({ verdict, reasoning: text });
-    } catch {} finally { setSaving(false); }
+      const data = await resp.json().catch(() => null);
+      if (!resp.ok || !data || data.ok !== true) {
+        throw new Error((data && data.error) || 'HTTP ' + resp.status);
+      }
+      setSaved(true); setSaveError(null); setDbReasoning({ verdict, reasoning: text });
+    } catch (err) {
+      setSaveError('Ошибка сохранения в БД: ' + (err instanceof Error ? err.message : String(err)));
+    } finally { setSaving(false); }
   };
 
   // AI Data tab
@@ -225,6 +232,7 @@ export function AIAnalysisPanel({ project, activeTab = 'reasoning' }: Props) {
       })()}
 
       {saving && <div className="text-[0.8rem] text-[#718096] flex items-center gap-2"><Loader2 className="w-3.5 h-3.5 animate-spin" />Сохранение в БД...</div>}
+      {saveError && <div className="text-[0.8rem] text-[#e02424] bg-[#fee2e2] rounded-lg px-3 py-2">{saveError}</div>}
     </div>
   );
 }
