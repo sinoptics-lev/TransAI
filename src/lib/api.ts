@@ -9,26 +9,36 @@ const API_BASE = './api';
 
 let _apiAvailable: boolean | null = null;
 
-/** Check if PHP API is available. Uses validate_single.php (no DB needed). */
+/** Check if PHP API is available. Uses ping.php (simple health check). */
 export async function isApiAvailable(): Promise<boolean> {
   if (_apiAvailable !== null) return _apiAvailable;
   try {
     const ctrl = new AbortController();
     const timeout = setTimeout(() => ctrl.abort(), 5000);
-    // Use validate_single.php with GET - should return "Only POST method is allowed"
-    const response = await fetch(`${API_BASE}/validate_single.php`, {
+    const response = await fetch(`${API_BASE}/ping.php`, {
       method: 'GET',
       signal: ctrl.signal,
     });
     clearTimeout(timeout);
+    
+    if (!response.ok) {
+      _apiAvailable = false;
+      return false;
+    }
+    
     const text = await response.text();
     // Check if response is JSON (not HTML/PHP source)
     if (text.trim().startsWith('<?php') || text.trim().startsWith('<')) {
       _apiAvailable = false;
       return false;
     }
-    const data = JSON.parse(text);
-    _apiAvailable = typeof data.ok === 'boolean';
+    
+    try {
+      const data = JSON.parse(text);
+      _apiAvailable = data.ok === true;
+    } catch {
+      _apiAvailable = false;
+    }
     return _apiAvailable;
   } catch {
     _apiAvailable = false;
