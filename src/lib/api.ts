@@ -15,26 +15,38 @@ export async function isApiAvailable(): Promise<boolean> {
   try {
     const ctrl = new AbortController();
     const timeout = setTimeout(() => ctrl.abort(), 5000);
-    // Use validate_single.php with GET - should return "Only POST method is allowed"
+    // Use validate_single.php with GET - should return JSON (even error JSON)
     const response = await fetch(`${API_BASE}/validate_single.php`, {
       method: 'GET',
       signal: ctrl.signal,
     });
     clearTimeout(timeout);
-    const text = await response.text();
-    // Check if response is JSON (not HTML/PHP source)
-    if (text.trim().startsWith('<?php') || text.trim().startsWith('<')) {
-      console.warn('[API] PHP not executing, got HTML/PHP source');
+
+    if (!response.ok) {
       _apiAvailable = false;
       return false;
     }
-    const data = JSON.parse(text);
-    // Any JSON response (ok:true or ok:false) means PHP works
-    _apiAvailable = typeof data.ok === 'boolean';
-    console.log('[API] Available:', _apiAvailable, 'base:', API_BASE);
-    return _apiAvailable;
-  } catch (err) {
-    console.warn('[API] Not available:', err, 'base:', API_BASE);
+
+    const text = await response.text();
+
+    // If we got PHP source or HTML, PHP is not executing
+    if (text.trim().startsWith('<?php') || text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+      _apiAvailable = false;
+      return false;
+    }
+
+    // Try to parse as JSON
+    try {
+      const data = JSON.parse(text);
+      // Any valid JSON with ok field means PHP works
+      _apiAvailable = typeof data.ok === 'boolean';
+      return _apiAvailable;
+    } catch {
+      // Not JSON = PHP not working
+      _apiAvailable = false;
+      return false;
+    }
+  } catch {
     _apiAvailable = false;
     return false;
   }
@@ -119,8 +131,7 @@ export interface ProjectsResult {
 async function safeJsonParse(response: Response): Promise<unknown | null> {
   try {
     const text = await response.text();
-    if (text.trim().startsWith('<?php') || text.trim().startsWith('<')) {
-      console.warn('[API] Got HTML/PHP instead of JSON');
+    if (text.trim().startsWith('<?php') || text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
       return null;
     }
     return JSON.parse(text);
@@ -140,7 +151,6 @@ export async function validateSingleFile(file: File, type: 'rm' | 'db' | 'ai'): 
 
   const available = await isApiAvailable();
   if (!available) {
-    console.warn('[API] PHP not available, skipping validation for', type);
     return {
       ok: true,
       valid: true,
@@ -155,7 +165,6 @@ export async function validateSingleFile(file: File, type: 'rm' | 'db' | 'ai'): 
   formData.append('type', type);
 
   const url = `${API_BASE}/validate_single.php`;
-  console.log('[API] Validating', type, 'at', url, 'file:', file.name, file.size);
 
   try {
     const ctrl = new AbortController();
@@ -166,8 +175,6 @@ export async function validateSingleFile(file: File, type: 'rm' | 'db' | 'ai'): 
       signal: ctrl.signal,
     });
     clearTimeout(timeout);
-
-    console.log('[API] Response status:', response.status);
 
     const data = await safeJsonParse(response);
 
@@ -201,8 +208,7 @@ export async function validateSingleFile(file: File, type: 'rm' | 'db' | 'ai'): 
       message: (d.message as string) || 'OK',
       type: d.type as string | undefined,
     };
-  } catch (err) {
-    console.warn('[API] Validation error:', err);
+  } catch {
     return {
       ok: true,
       valid: true,
@@ -402,7 +408,7 @@ export function apiProjectToFrontend(
     reductionDate: apiProject.reductionDate,
     createdDate: (apiProject as Record<string, unknown>).createdDate as string || '',
     updatedDate: (apiProject as Record<string, unknown>).updatedDate as string || '',
-    aiVerdict: apiProject.aiVerdict || 'Нет данных',
+    aiVerdict: apiProject.aiVerdict || '\u041d\u0435\u0442 \u0434\u0430\u043d\u043d\u044b\u0445',
     aiReasoning: apiProject.aiReasoning || '',
     aiAnalysis: apiProject.aiAnalysis,
   };
