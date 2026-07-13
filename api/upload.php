@@ -108,7 +108,8 @@ try {
             labor_claimed = :labor_claimed, reduction_actual = :reduction_actual, release_other = :release_other,
             reduction_date = :reduction_date,
             created_date = :created_date, updated_date = :updated_date,
-            ai_verdict = :ai_verdict, ai_reasoning = :ai_reasoning,
+            ai_verdict = CASE WHEN :has_ai_v = 1 THEN :ai_verdict ELSE ai_verdict END,
+            ai_reasoning = CASE WHEN :has_ai_r = 1 THEN :ai_reasoning ELSE ai_reasoning END,
             is_deleted = 0, deleted_at = NULL
         WHERE rm_id = :rm_id
     ");
@@ -183,6 +184,8 @@ try {
             ':updated_date'     => isset($project['updatedDate']) ? $project['updatedDate'] : '',
             ':ai_verdict'       => $aiVerdict,
             ':ai_reasoning'     => $aiReasoning,
+            ':has_ai_v'         => ($aiVerdict !== 'Нет данных') ? 1 : 0,
+            ':has_ai_r'         => ($aiVerdict !== 'Нет данных') ? 1 : 0,
         );
 
         if (isset($dbByRmId[$rmId])) {
@@ -193,7 +196,10 @@ try {
                 $updated++;
             }
         } else {
-            $insStmt->execute($params);
+            // INSERT has no :has_ai_* placeholders — strip them (native prepares reject extras)
+            $insParams = $params;
+            unset($insParams[':has_ai_v'], $insParams[':has_ai_r']);
+            $insStmt->execute($insParams);
             $inserted++;
         }
     }
