@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $verdict = isset($input['verdict']) ? trim($input['verdict']) : '';
     $reasoning = isset($input['reasoning']) ? trim($input['reasoning']) : '';
     if ($rmId <= 0) { errorResponse('rmId required'); }
-    if (empty($verdict)) { errorResponse('verdict required'); }
+    if ($verdict === '') { $verdict = 'Не определён'; }
     if (empty($reasoning)) { errorResponse('reasoning required'); }
 
     $pdo = getDbConnection();
