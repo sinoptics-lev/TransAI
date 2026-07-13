@@ -1,13 +1,20 @@
 import { useState, useRef, useCallback } from 'react';
-import { motion } from 'framer-motion';
-import { Upload, FileSpreadsheet, X, Check, ArrowRight, Download, RotateCcw } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Upload, FileSpreadsheet, X, Check, ArrowRight,
+  Download, RotateCcw, Database, AlertCircle, Loader2
+} from 'lucide-react';
+import { validateSingleFile } from '@/lib/api';
+import type { SingleValidationResult } from '@/lib/api';
 
 interface FileUploaderProps {
   onFilesLoad: (rmFile: File, dbFile: File, aiFile?: File) => void;
   onAIFileLoad: (aiFile: File) => void;
+  onSaveToDatabase?: (rmFile: File, dbFile: File, aiFile?: File) => void;
   hasProjectData: boolean;
   isLoading: boolean;
   aiLoading?: boolean;
+  saveToDbLoading?: boolean;
   fileNames?: { rm?: string | null; db?: string | null; ai?: string | null } | null;
   onClear: () => void;
   onResetToServer?: () => void;
@@ -16,18 +23,24 @@ interface FileUploaderProps {
   onExportFullReport?: () => void;
 }
 
+type ValidationState = 'idle' | 'validating' | 'valid' | 'invalid';
+
 function FileDropZone({
   label,
   sublabel,
   file,
   onDrop,
   isLoading,
+  validation,
+  validationResult,
 }: {
   label: string;
   sublabel: string;
   file: File | null;
   onDrop: (f: File) => void;
   isLoading: boolean;
+  validation: ValidationState;
+  validationResult: SingleValidationResult | null;
 }) {
   const [isDragOver, setIsDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -59,14 +72,50 @@ function FileDropZone({
   }, [onDrop]);
 
   if (file) {
+    const statusColor = validation === 'valid'
+      ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800'
+      : validation === 'invalid'
+        ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
+        : validation === 'validating'
+          ? 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800'
+          : 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800';
+
+    const StatusIcon = validation === 'validating'
+      ? Loader2
+      : validation === 'invalid'
+        ? AlertCircle
+        : Check;
+
+    const iconColor = validation === 'valid'
+      ? 'text-emerald-600 dark:text-emerald-400'
+      : validation === 'invalid'
+        ? 'text-red-500'
+        : validation === 'validating'
+          ? 'text-blue-500 animate-spin'
+          : 'text-emerald-600 dark:text-emerald-400';
+
+    const iconBg = validation === 'valid'
+      ? 'bg-emerald-100 dark:bg-emerald-900/40'
+      : validation === 'invalid'
+        ? 'bg-red-100 dark:bg-red-900/40'
+        : validation === 'validating'
+          ? 'bg-blue-100 dark:bg-blue-900/40'
+          : 'bg-emerald-100 dark:bg-emerald-900/40';
+
     return (
-      <div className="flex items-center gap-3 bg-emerald-50 dark:bg-emerald-950/20 rounded-xl px-4 py-3 border border-emerald-200 dark:border-emerald-800">
-        <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center flex-shrink-0">
-          <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+      <div className={`flex items-center gap-3 rounded-xl px-4 py-3 border ${statusColor}`}>
+        <div className={`w-8 h-8 rounded-full ${iconBg} flex items-center justify-center flex-shrink-0`}>
+          <StatusIcon className={`w-4 h-4 ${iconColor}`} />
         </div>
         <div className="flex-1 min-w-0">
           <div className="text-[0.75rem] text-muted-foreground">{label}</div>
           <div className="text-[0.85rem] font-semibold text-foreground truncate">{file.name}</div>
+          {validationResult && validation === 'invalid' && (
+            <div className="text-[0.7rem] text-red-500 mt-0.5">{validationResult.message}</div>
+          )}
+          {validation === 'validating' && (
+            <div className="text-[0.7rem] text-blue-500 mt-0.5">Проверка...</div>
+          )}
         </div>
       </div>
     );
@@ -105,9 +154,11 @@ function FileDropZone({
 export function FileUploader({
   onFilesLoad,
   onAIFileLoad,
+  onSaveToDatabase,
   hasProjectData,
   isLoading,
   aiLoading,
+  saveToDbLoading,
   fileNames,
   onClear,
   onResetToServer,
@@ -119,15 +170,40 @@ export function FileUploader({
   const [dbFile, setDbFile] = useState<File | null>(null);
   const [aiFile, setAiFile] = useState<File | null>(null);
 
-  const handleRmDrop = useCallback((f: File) => setRmFile(f), []);
-  const handleDbDrop = useCallback((f: File) => setDbFile(f), []);
+  const [rmValidation, setRmValidation] = useState<ValidationState>('idle');
+  const [dbValidation, setDbValidation] = useState<ValidationState>('idle');
+  const [rmValidationResult, setRmValidationResult] = useState<SingleValidationResult | null>(null);
+  const [dbValidationResult, setDbValidationResult] = useState<SingleValidationResult | null>(null);
+
+  const handleRmDrop = useCallback(async (f: File) => {
+    setRmFile(f);
+    setRmValidation('validating');
+    const result = await validateSingleFile(f, 'rm');
+    setRmValidationResult(result);
+    setRmValidation(result.valid ? 'valid' : 'invalid');
+  }, []);
+
+  const handleDbDrop = useCallback(async (f: File) => {
+    setDbFile(f);
+    setDbValidation('validating');
+    const result = await validateSingleFile(f, 'db');
+    setDbValidationResult(result);
+    setDbValidation(result.valid ? 'valid' : 'invalid');
+  }, []);
+
   const handleAiDrop = useCallback((f: File) => setAiFile(f), []);
 
   const handleLoad = () => {
-    if (rmFile && dbFile) {
+    if (rmFile && dbFile && rmValidation !== 'invalid' && dbValidation !== 'invalid') {
       onFilesLoad(rmFile, dbFile, aiFile || undefined);
     } else if (aiFile && hasProjectData) {
       onAIFileLoad(aiFile);
+    }
+  };
+
+  const handleSaveDb = () => {
+    if (onSaveToDatabase && rmFile && dbFile) {
+      onSaveToDatabase(rmFile, dbFile, aiFile || undefined);
     }
   };
 
@@ -135,10 +211,16 @@ export function FileUploader({
     setRmFile(null);
     setDbFile(null);
     setAiFile(null);
+    setRmValidation('idle');
+    setDbValidation('idle');
+    setRmValidationResult(null);
+    setDbValidationResult(null);
     onClear();
   };
 
-  const canLoad = (rmFile && dbFile) || (aiFile && hasProjectData);
+  const canLoad = ((rmFile && dbFile && rmValidation !== 'invalid' && dbValidation !== 'invalid')
+    || (aiFile && hasProjectData));
+  const canSaveDb = onSaveToDatabase && rmFile && dbFile && rmValidation === 'valid' && dbValidation === 'valid';
 
   if (fileNames?.rm && fileNames?.db) {
     return (
@@ -242,6 +324,8 @@ export function FileUploader({
             file={rmFile}
             onDrop={handleRmDrop}
             isLoading={isLoading}
+            validation={rmValidation}
+            validationResult={rmValidationResult}
           />
           <FileDropZone
             label="Данные из ДБ"
@@ -249,6 +333,8 @@ export function FileUploader({
             file={dbFile}
             onDrop={handleDbDrop}
             isLoading={isLoading}
+            validation={dbValidation}
+            validationResult={dbValidationResult}
           />
           <FileDropZone
             label="Аналитика ИИ"
@@ -256,31 +342,46 @@ export function FileUploader({
             file={aiFile}
             onDrop={handleAiDrop}
             isLoading={aiLoading ?? false}
+            validation="idle"
+            validationResult={null}
           />
         </div>
 
-        {canLoad && (
-          <motion.div
-            className="mt-3 flex items-center gap-3"
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <button
-              onClick={handleLoad}
-              className="flex items-center gap-2 px-5 py-2.5 bg-mingos-red text-white rounded-lg text-[0.9rem] font-semibold border-none cursor-pointer hover:bg-red-600 transition-colors"
+        <AnimatePresence>
+          {canLoad && (
+            <motion.div
+              className="mt-3 flex items-center gap-3 flex-wrap"
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
             >
-              <ArrowRight className="w-4 h-4" />
-              {rmFile && dbFile
-                ? (aiFile ? 'Обновить дашборд + ИИ' : 'Обновить дашборд')
-                : 'Обновить ИИ-аналитику'}
-            </button>
-            <span className="text-[0.8rem] text-muted-foreground">
-              {rmFile && dbFile
-                ? 'Связь по ID: РМ (столбец A) ↔ ДБ (столбец L)' + (aiFile ? ' ↔ ИИ (столбец A)' : '')
-                : 'Обновление только данных ИИ-аналитики для текущих проектов'}
-            </span>
-          </motion.div>
-        )}
+              <button
+                onClick={handleLoad}
+                className="flex items-center gap-2 px-5 py-2.5 bg-mingos-red text-white rounded-lg text-[0.9rem] font-semibold border-none cursor-pointer hover:bg-red-600 transition-colors"
+              >
+                <ArrowRight className="w-4 h-4" />
+                {rmFile && dbFile
+                  ? (aiFile ? 'Обновить дашборд + ИИ' : 'Обновить дашборд')
+                  : 'Обновить ИИ-аналитику'}
+              </button>
+              {canSaveDb && (
+                <button
+                  onClick={handleSaveDb}
+                  disabled={saveToDbLoading}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white rounded-lg text-[0.9rem] font-semibold border-none cursor-pointer hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                >
+                  <Database className="w-4 h-4" />
+                  {saveToDbLoading ? 'Сохранение...' : 'Сохранить в БД'}
+                </button>
+              )}
+              <span className="text-[0.8rem] text-muted-foreground">
+                {rmFile && dbFile
+                  ? 'Связь по ID: РМ (столбец A) ↔ ДБ (столбец L)' + (aiFile ? ' ↔ ИИ (столбец A)' : '')
+                  : 'Обновление только данных ИИ-аналитики для текущих проектов'}
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </motion.div>
   );
