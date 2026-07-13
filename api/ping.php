@@ -3,6 +3,7 @@
  * TransAI diagnostic endpoint.
  * Open in browser: /api/ping.php        — PHP check
  *                  /api/ping.php?db=1   — PHP + MySQL connection check
+ *                  /api/ping.php?db=2   — + ai_reasoning table structure
  */
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
@@ -27,6 +28,18 @@ if (isset($_GET['db'])) {
             $out['tables'] = $pdo->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN);
         } catch (Exception $e) {
             $out['tables_error'] = $e->getMessage();
+        }
+        // Extended diagnostics: table structure for AI tables
+        if ((int)$_GET['db'] >= 2) {
+            foreach (array('ai_reasoning', 'ai_analysis', 'projects') as $tbl) {
+                try {
+                    $out['structure'][$tbl]['columns'] = $pdo->query("SHOW COLUMNS FROM `$tbl`")->fetchAll(PDO::FETCH_ASSOC);
+                    $out['structure'][$tbl]['indexes'] = $pdo->query("SHOW INDEX FROM `$tbl`")->fetchAll(PDO::FETCH_ASSOC);
+                    $out['structure'][$tbl]['rows'] = (int)$pdo->query("SELECT COUNT(*) FROM `$tbl`")->fetchColumn();
+                } catch (Exception $e) {
+                    $out['structure'][$tbl]['error'] = $e->getMessage();
+                }
+            }
         }
     } catch (Exception $e) {
         $out['ok'] = false;
