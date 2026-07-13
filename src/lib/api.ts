@@ -9,35 +9,84 @@ const API_BASE = './api';
 
 let _apiAvailable: boolean | null = null;
 
-/** Check if PHP API is available. Uses validate_single.php (no DB needed). */
+/**
+ * Some hostings (e.g. Hostiman bot management) intercept the first request
+ * to *.php with a JS challenge (302 -> verify page -> cookie "bm=1").
+ * fetch() cannot execute that JS, so we load the URL in a hidden iframe:
+ * the browser passes the challenge inside it and sets the cookie for the
+ * whole domain, after which normal fetch() requests succeed.
+ */
+function passHostingBotCheck(url: string): Promise<void> {
+  return new Promise((resolve) => {
+    try {
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        setTimeout(() => {
+          try { iframe.remove(); } catch { /* ignore */ }
+          resolve();
+        }, 300);
+      };
+      // Give the challenge JS time to set the cookie and redirect
+      iframe.onload = () => setTimeout(finish, 1500);
+      iframe.src = url;
+      document.body.appendChild(iframe);
+      setTimeout(finish, 5000); // safety timeout
+    } catch {
+      resolve();
+    }
+  });
+}
+
+/** Check if PHP API is available. Uses ping.php (no DB needed). */
 export async function isApiAvailable(): Promise<boolean> {
   if (_apiAvailable !== null) return _apiAvailable;
-  try {
-    const ctrl = new AbortController();
-    const timeout = setTimeout(() => ctrl.abort(), 5000);
-    // Use validate_single.php with GET - should return "Only POST method is allowed"
-    const response = await fetch(`${API_BASE}/validate_single.php`, {
-      method: 'GET',
-      signal: ctrl.signal,
-    });
-    clearTimeout(timeout);
-    const text = await response.text();
-    // Check if response is JSON (not HTML/PHP source)
-    if (text.trim().startsWith('<?php') || text.trim().startsWith('<')) {
-      console.warn('[API] PHP not executing, got HTML/PHP source');
-      _apiAvailable = false;
+
+  const checkUrl = `${API_BASE}/ping.php`;
+
+  const tryFetch = async (): Promise<boolean | 'challenge'> => {
+    try {
+      const ctrl = new AbortController();
+      const timeout = setTimeout(() => ctrl.abort(), 5000);
+      const response = await fetch(checkUrl, {
+        method: 'GET',
+        signal: ctrl.signal,
+      });
+      clearTimeout(timeout);
+      const text = await response.text();
+      // HTML response = hosting bot-check page or PHP source (misconfig)
+      if (text.trim().startsWith('<?php') || text.trim().startsWith('<')) {
+        return 'challenge';
+      }
+      const data = JSON.parse(text);
+      // Any JSON response (ok:true or ok:false) means PHP works
+      return typeof data.ok === 'boolean';
+    } catch {
       return false;
     }
-    const data = JSON.parse(text);
-    // Any JSON response (ok:true or ok:false) means PHP works
-    _apiAvailable = typeof data.ok === 'boolean';
-    console.log('[API] Available:', _apiAvailable, 'base:', API_BASE);
-    return _apiAvailable;
-  } catch (err) {
-    console.warn('[API] Not available:', err, 'base:', API_BASE);
-    _apiAvailable = false;
-    return false;
+  };
+
+  let result = await tryFetch();
+
+  if (result === 'challenge') {
+    // Try to pass the hosting bot-check via hidden iframe (once per session)
+    if (!sessionStorage.getItem('api_botcheck_tried')) {
+      sessionStorage.setItem('api_botcheck_tried', '1');
+      await passHostingBotCheck(`${checkUrl}?_t=${Date.now()}`);
+      result = await tryFetch();
+    }
+    if (result === 'challenge') {
+      console.warn('[API] PHP not executing, got HTML/PHP source');
+      result = false;
+    }
   }
+
+  _apiAvailable = result === true;
+  console.log('[API] Available:', _apiAvailable, 'base:', API_BASE);
+  return _apiAvailable;
 }
 
 export interface ApiProject {
