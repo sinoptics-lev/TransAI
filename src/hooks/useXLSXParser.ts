@@ -103,8 +103,8 @@ function parseRMFile(file: File): Promise<{ records: Project[]; headers: (string
           mingos: findColIdx(headers, 'Мингос', 'Реализовано Мингос'),
           effectType: findColIdx(headers, 'Тип эффекта'),
           effectAmount: findColIdx(headers, 'Сумма эффекта'),
-          createdDate: findColIdx(headers, 'Создано', 'создано', 'Дата создания', 'дата создания', 'created', 'Create', 'create'),
-          updatedDate: findColIdx(headers, 'Обновлено', 'обновлено', 'Дата изменения', 'дата изменения', 'updated', 'Update', 'update'),
+          createdDate: findColIdx(headers, 'Дата создания', 'дата создания', 'created', 'Create', 'create'),
+          updatedDate: findColIdx(headers, 'Дата изменения', 'дата изменения', 'updated', 'Update', 'update'),
         };
 
         console.log('[XLSX] Date columns — createdDate idx:', colIdx.createdDate, 'updatedDate idx:', colIdx.updatedDate);
