@@ -23,7 +23,7 @@ export function Header() {
           transition={{ duration: 0.6, delay: 0.15, ease: 'easeOut' }}
         >
           <img
-            src="./logo-mingu-light.png"
+            src="./logo-mingu-light.svg"
             alt="Московская область — Мингосуправления"
             className="h-[54px] w-auto object-contain"
           />
