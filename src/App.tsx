@@ -310,7 +310,7 @@ function App() {
   // ===== Loading =====
   if (!checked || jsonLoading) {
     return (
-      <div className="min-h-screen bg-[#f0f4f8] flex items-center justify-center">
+      <div className="min-h-screen app-bg flex items-center justify-center">
         <div className="text-[#718096] text-lg">Загрузка данных...</div>
       </div>
     );
@@ -320,7 +320,7 @@ function App() {
   if (!data) {
     return (
       <TooltipProvider>
-        <div className="min-h-screen bg-[#f0f4f8] flex items-center justify-center">
+        <div className="min-h-screen app-bg flex items-center justify-center">
           <div className="w-full max-w-[600px] px-4">
             <div className="text-[#1a202c] text-lg text-center mb-2 font-semibold">
               Загрузите данные из двух источников
@@ -356,7 +356,7 @@ function App() {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-[#f0f4f8] text-[#1a202c]">
+      <div className="min-h-screen app-bg text-[#1a202c]">
         <div className="max-w-[1400px] mx-auto px-6 py-6">
           <Header />
 
