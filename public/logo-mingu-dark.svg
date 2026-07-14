@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 5730 600" width="5730" height="600">
+  <path d="M0,599 L119,599 L120,249 L400,459 L639,279 L639,120 L399,300 L0,0 Z" fill="#535862"/>
+  <path d="M799,210 L680,300 L680,599 L799,599 Z" fill="#535862"/>
+  <path d="M799,0 L680,90 L680,249 L799,159 Z" fill="#ff4949"/>
+  <text x="961" y="162" font-family="Arial, Helvetica, sans-serif" font-size="226" font-weight="bold" fill="#535862" textLength="2837" lengthAdjust="spacingAndGlyphs">МОСКОВСКАЯ ОБЛАСТЬ</text>
+  <text x="961" y="599" font-family="Arial, Helvetica, sans-serif" font-size="388" font-weight="bold" fill="#535862" textLength="4768" lengthAdjust="spacingAndGlyphs">МИНГОСУПРАВЛЕНИЯ</text>
+</svg>
