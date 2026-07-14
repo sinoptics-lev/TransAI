@@ -23,20 +23,109 @@
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
     --ring: 240 5.9% 10%;
-    --radius: 0.5rem;
+    --radius: 0.625rem;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
 @layer base {
   * {
-    border-color: hsl(var(--border));
+    @apply border-border;
   }
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
+    @apply bg-background text-foreground;
   }
 }
 
+/* AI Analysis Markdown Styles */
+.ai-analysis-content h1 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0e9f6e;
+  margin: 0.75rem 0 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 2px solid #bbf7d0;
+}
+
+.ai-analysis-content h2 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0.75rem 0 0.4rem;
+  padding-bottom: 0.2rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.ai-analysis-content h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #4a5568;
+  margin: 0.6rem 0 0.3rem;
+}
+
+.ai-analysis-content strong {
+  font-weight: 700;
+  color: #1a202c;
+}
+
+.ai-analysis-content .ai-list {
+  margin: 0.5rem 0 0.75rem 1.25rem;
+  list-style-position: outside;
+}
+
+.ai-analysis-content .ai-list li {
+  margin-bottom: 0.3rem;
+  line-height: 1.5;
+}
+
+.ai-analysis-content ol.ai-list {
+  list-style-type: decimal;
+}
+
+.ai-analysis-content ul.ai-list {
+  list-style-type: disc;
+}
+
+.ai-analysis-content br + br {
+  display: none;
+}
 /* Corporate page background — Mingu slate + red abstract pattern */
 .app-bg {
   background: #eef0f3 url('./bg-pattern.svg') no-repeat center center fixed;
