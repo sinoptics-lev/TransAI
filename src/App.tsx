@@ -61,6 +61,7 @@ function App() {
   const [search, setSearch] = useState('');
   const [hasEffectFilter, setHasEffectFilter] = useState<'all' | 'yes' | 'no'>('all');
   const [verdictFilter, setVerdictFilter] = useState<string>('all');
+  const [aiTagFilter, setAiTagFilter] = useState<'all' | 'yes' | 'no'>('all');
 
   // ===== Global "Только финансы" toggle =====
   const [onlyReduction, setOnlyReduction] = useState(false);
@@ -84,6 +85,8 @@ function App() {
 
     // Apply filters on top of adjusted projects
     if (deptFilter) result = result.filter(p => p.department === deptFilter);
+    if (aiTagFilter === 'yes') result = result.filter(p => p.tags ? p.tags.split(',').map(t => t.trim()).includes('ИИ') : false);
+    if (aiTagFilter === 'no') result = result.filter(p => p.tags ? !p.tags.split(',').map(t => t.trim()).includes('ИИ') : true);
     if (mingosFilter === 'yes') result = result.filter(p => p.mingos === 'Да');
     if (mingosFilter === 'no') result = result.filter(p => p.mingos === 'Нет');
     if (efficiencyFilter !== 'all') result = result.filter(p => getEfficiencyCategory(p.delta) === efficiencyFilter);
@@ -98,7 +101,7 @@ function App() {
     if (search) { const q = search.toLowerCase(); result = result.filter(p => p.name.toLowerCase().includes(q)); }
 
     return result;
-  }, [data, onlyReduction, deptFilter, mingosFilter, efficiencyFilter, hasEffectFilter, verdictFilter, search]);
+  }, [data, onlyReduction, deptFilter, aiTagFilter, mingosFilter, efficiencyFilter, hasEffectFilter, verdictFilter, search]);
 
   // ===== Dashboard data from adjusted (filtered) projects =====
   const filteredData = useMemo(() => {
@@ -282,6 +285,7 @@ function App() {
 
   const handleResetFilters = useCallback(() => {
     setDeptFilter('');
+    setAiTagFilter('all');
     setMingosFilter('all');
     setEfficiencyFilter('all');
     setHasEffectFilter('all');
@@ -398,6 +402,8 @@ function App() {
             departments={data.departmentList}
             deptFilter={deptFilter}
             onDeptFilterChange={setDeptFilter}
+            aiTagFilter={aiTagFilter}
+            onAiTagFilterChange={setAiTagFilter}
             mingosFilter={mingosFilter}
             onMingosFilterChange={setMingosFilter}
             efficiencyFilter={efficiencyFilter}
