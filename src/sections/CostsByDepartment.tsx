@@ -10,6 +10,7 @@ interface Props {
 export function CostsByDepartment({ data, defaultOpen = false }: Props) {
   const maxTotal = data.deptCosts.length > 0 ? data.deptCosts[0].total : 1;
 
+  // All values displayed in millions of rubles
   const fmtMln = (v: number) => (v / 1000).toLocaleString('ru-RU', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
   return (
@@ -31,21 +32,21 @@ export function CostsByDepartment({ data, defaultOpen = false }: Props) {
                   value: dept.fot,
                   displayValue: fmtMln(dept.fot),
                   pct: dept.fotPct,
-                  colorClass: 'bg-gradient-to-r from-blue-600 to-blue-700',
+                  colorClass: 'bg-[#1a56db] dark:bg-[#1e3a8a]',
                 },
                 {
                   label: 'Прямые затраты',
                   value: dept.direct,
                   displayValue: fmtMln(dept.direct),
                   pct: dept.directPct,
-                  colorClass: 'bg-gradient-to-r from-blue-400 to-blue-500',
+                  colorClass: 'bg-[#3f83f8] dark:bg-[#1c64f2]',
                 },
                 {
                   label: 'Инфраструктура',
                   value: dept.infra,
                   displayValue: fmtMln(dept.infra),
                   pct: dept.infraPct,
-                  colorClass: 'bg-gradient-to-r from-gray-400 to-gray-500',
+                  colorClass: 'bg-[#9ca3af] dark:bg-[#475569]',
                 },
               ]}
             />
@@ -53,17 +54,17 @@ export function CostsByDepartment({ data, defaultOpen = false }: Props) {
         })}
       </div>
 
-      <div className="flex gap-6 mt-3 text-[0.9rem] text-muted-foreground">
+      <div className="flex gap-6 mt-3 text-[0.9rem] dept-legend-text font-semibold">
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-blue-600" />
+          <div className="w-3 h-3 rounded-full bg-[#1a56db] dark:bg-[#1e3a8a]" />
           <span>ФОТ</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-blue-400" />
+          <div className="w-3 h-3 rounded-full bg-[#3f83f8] dark:bg-[#1c64f2]" />
           <span>Прямые затраты</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-gray-400" />
+          <div className="w-3 h-3 rounded-full bg-[#9ca3af] dark:bg-[#475569]" />
           <span>Инфраструктура</span>
         </div>
       </div>

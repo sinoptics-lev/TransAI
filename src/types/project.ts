@@ -39,6 +39,7 @@ export interface Project {
   aiVerdict?: string;
   /** AI reasoning text */
   aiReasoning?: string;
+  tags?: string;
 }
 
 export interface AIAnalysis {

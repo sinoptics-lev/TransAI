@@ -103,8 +103,8 @@ function parseRMFile(file: File): Promise<{ records: Project[]; headers: (string
           mingos: findColIdx(headers, 'Мингос', 'Реализовано Мингос'),
           effectType: findColIdx(headers, 'Тип эффекта'),
           effectAmount: findColIdx(headers, 'Сумма эффекта'),
-          createdDate: findColIdx(headers, 'Создано', 'создано', 'Дата создания', 'дата создания', 'created', 'Create', 'create'),
-          updatedDate: findColIdx(headers, 'Обновлено', 'обновлено', 'Дата изменения', 'дата изменения', 'updated', 'Update', 'update'),
+          createdDate: findColIdx(headers, 'Дата создания', 'дата создания', 'created', 'Create', 'create'),
+          updatedDate: findColIdx(headers, 'Дата изменения', 'дата изменения', 'updated', 'Update', 'update'),
         };
 
         console.log('[XLSX] Date columns — createdDate idx:', colIdx.createdDate, 'updatedDate idx:', colIdx.updatedDate);
@@ -175,8 +175,8 @@ function parseRMFile(file: File): Promise<{ records: Project[]; headers: (string
             economicEffect: 0, delta: 0,
             nonMaterialEffect: '',
             rmStatus: colIdx.status >= 0 ? safeStr(row[colIdx.status]) : '',
-            createdDate: colIdx.createdDate >= 0 ? parseDate(row[colIdx.createdDate]) : '',
-            updatedDate: colIdx.updatedDate >= 0 ? parseDate(row[colIdx.updatedDate]) : '',
+            createdDate: row[13] !== undefined && row[13] !== null && row[13] !== '' ? parseDate(row[13]) : (colIdx.createdDate >= 0 ? parseDate(row[colIdx.createdDate]) : ''),
+            updatedDate: row[14] !== undefined && row[14] !== null && row[14] !== '' ? parseDate(row[14]) : (colIdx.updatedDate >= 0 ? parseDate(row[colIdx.updatedDate]) : ''),
             _raw: raw,
           });
         }

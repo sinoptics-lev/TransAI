@@ -40,14 +40,31 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     a_send(['analysis' => 'Метод не поддерживается. Используйте POST.']);
 }
 
-// Step 1: Read API key from .env via shared config
-require_once __DIR__ . '/config.php';
-$apiKey = env('DEEPSEEK_API_KEY', '');
-a_log('DEEPSEEK_API_KEY ' . (empty($apiKey) ? 'NOT FOUND' : 'found, length=' . strlen($apiKey)));
+// Step 1: Read API key from .env
+$apiKey = '';
+$envFile = __DIR__ . '/../.env';
+a_log('Looking for .env at: ' . $envFile);
+
+if (file_exists($envFile)) {
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    if ($lines) {
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if (strpos($line, '#') === 0) continue;
+            if (strpos($line, 'DEEPSEEK_API_KEY=') === 0) {
+                $apiKey = trim(substr($line, strlen('DEEPSEEK_API_KEY=')));
+                break;
+            }
+        }
+    }
+}
 
 if (empty($apiKey)) {
+    a_log('ERROR: DEEPSEEK_API_KEY not found in .env');
     a_send(['analysis' => 'AI-анализ недоступен: не настроен DEEPSEEK_API_KEY. Добавьте ключ в файл .env']);
 }
+
+a_log('API key found, length=' . strlen($apiKey));
 
 // Step 2: Read input JSON
 $input = json_decode(file_get_contents('php://input'), true);

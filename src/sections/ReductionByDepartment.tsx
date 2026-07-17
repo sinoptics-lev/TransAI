@@ -30,14 +30,14 @@ export function ReductionByDepartment({ data, defaultOpen = false }: Props) {
                   value: dept.reduction,
                   displayValue: fmt(dept.reduction),
                   pct: dept.reductionPct,
-                  colorClass: 'bg-gradient-to-r from-emerald-500 to-emerald-600',
+                  colorClass: 'bg-[#0e9f6e] dark:bg-[#3da885]',
                 },
                 {
                   label: 'Высвобождение без сокращения',
                   value: dept.labor - dept.reduction,
                   displayValue: fmt(dept.labor - dept.reduction),
                   pct: dept.laborPct,
-                  colorClass: 'bg-gradient-to-r from-blue-400 to-blue-500',
+                  colorClass: 'bg-[#3f83f8] dark:bg-[#1c64f2]',
                 },
               ]}
             />
@@ -45,13 +45,13 @@ export function ReductionByDepartment({ data, defaultOpen = false }: Props) {
         })}
       </div>
 
-      <div className="flex gap-6 mt-3 text-[0.9rem] text-muted-foreground">
+      <div className="flex gap-6 mt-3 text-[0.9rem] dept-legend-text font-semibold">
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-emerald-500" />
+          <div className="w-3 h-3 rounded-full bg-[#0e9f6e] dark:bg-[#3da885]" />
           <span>План сокращения (чел.)</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-blue-400" />
+          <div className="w-3 h-3 rounded-full bg-[#3f83f8] dark:bg-[#1c64f2]" />
           <span>Высвобождение без сокращения (чел.)</span>
         </div>
       </div>

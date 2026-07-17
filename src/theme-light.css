@@ -1,0 +1,116 @@
+:root {
+  --light-bg-primary: #f8fafc;
+  --light-text-primary: #0f172a;
+  --light-text-secondary: #2d323a;
+  --light-text-muted: #555e6b;
+  --light-border: #e2e8f0;
+  
+  --light-chart-green: #3caea3;
+  --light-chart-amber: #e6af2e;
+  --light-chart-blue: #4a90e2;
+  --light-chart-red: #e05a47;
+  
+  --light-badge-profitable-bg: #e8f5e9;
+  --light-badge-profitable-text: #1b5e20;
+  --light-badge-unprofitable-bg: #ffebee;
+  --light-badge-unprofitable-text: #c62828;
+  --light-badge-average-bg: #e3f2fd;
+  --light-badge-average-text: #0d47a1;
+  --light-badge-efficient-bg: #fff8e1;
+  --light-badge-efficient-text: #f57f17;
+}
+
+/* Специфичные стили для Светлой Темы (Light Theme) */
+html:not(.dark) {
+  --background: 210 20% 99%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --border: 214.3 31.8% 91.4%;
+}
+
+html:not(.dark) .app-bg {
+  background: #f8fafc url('./bg-pattern.svg') no-repeat center center fixed !important;
+  background-size: cover !important;
+}
+
+/* Улучшение контрастности названий ведомств и текстовых меток */
+html:not(.dark) .dept-label {
+  color: var(--light-text-secondary) !important; /* Темный серо-угольный цвет */
+}
+
+html:not(.dark) .dept-label-num {
+  color: var(--light-text-muted) !important; /* Умеренный темно-серый для номеров строк */
+}
+
+html:not(.dark) .dept-legend-text {
+  color: var(--light-text-muted) !important; /* Читаемый цвет легенды */
+}
+
+html:not(.dark) .contrast-heading {
+  color: var(--light-text-primary) !important; /* Сверхвысокий контраст для заголовков */
+}
+
+html:not(.dark) .contrast-text-main {
+  color: var(--light-text-secondary) !important; /* Четкий текст для названий проектов */
+}
+
+html:not(.dark) .contrast-text-muted {
+  color: var(--light-text-muted) !important; /* Повышенная четкость вспомогательного текста */
+}
+
+/* Стилизация списков проектов, таблиц Топ-5 и карточек рекомендаций */
+html:not(.dark) .project-list-card {
+  border: 1px solid var(--light-border) !important;
+  background-color: #ffffff !important;
+}
+
+html:not(.dark) .project-list-name {
+  color: var(--light-text-secondary) !important;
+}
+
+/* Всплывающее описание для Светлой Темы (Light Theme Tooltip) */
+html:not(.dark) .kpi-tooltip {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.05) !important;
+}
+
+html:not(.dark) .kpi-tooltip-title {
+  color: var(--light-text-primary) !important;
+}
+
+html:not(.dark) .kpi-tooltip-muted {
+  color: var(--light-text-muted) !important;
+}
+
+html:not(.dark) .kpi-tooltip-value {
+  color: var(--light-text-secondary) !important;
+}
+
+html:not(.dark) .kpi-tooltip-divider {
+  border-color: #e2e8f0 !important;
+}
+
+html:not(.dark) .kpi-tooltip-total {
+  color: #7c3aed !important; /* Насыщенный фиолетовый акцент для светлой темы */
+}
+
+html:not(.dark) .kpi-tooltip-arrow {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Стили для модального окна аналитики в светлой теме */
+html:not(.dark) .analytics-modal {
+  background-color: #ffffff !important;
+  color: #1a202c !important;
+  border-color: #e2e8f0 !important;
+}
+html:not(.dark) .analytics-modal-title {
+  color: #1a202c !important;
+}
+html:not(.dark) .analytics-modal-link {
+  color: #1a56db !important;
+}
+

@@ -1,82 +1,113 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+@import "tailwindcss";
+
+@variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  
+  --color-sidebar: hsl(var(--sidebar-background));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+  
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-xs: calc(var(--radius) - 6px);
+}
 
 @layer base {
   :root {
-    /* Corporate Mingos colors - Light theme */
-    --background: 0 0% 96%;
-    --foreground: 220 10% 15%;
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
-    --card-foreground: 220 10% 15%;
+    --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 220 10% 15%;
-    --primary: 220 6% 35%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
     --primary-foreground: 0 0% 98%;
-    --secondary: 220 5% 92%;
-    --secondary-foreground: 220 10% 15%;
-    --muted: 220 5% 92%;
-    --muted-foreground: 220 5% 45%;
-    --accent: 0 84% 60%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 220 10% 85%;
-    --input: 220 10% 85%;
-    --ring: 0 84% 60%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
     --radius: 0.625rem;
     --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 220 5.3% 26.1%;
-    --sidebar-primary: 220 6% 35%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 220 5% 92%;
-    --sidebar-accent-foreground: 220 10% 15%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 0 84% 60%;
-
-    /* Custom corporate colors */
-    --mingos-graphite: 220 6% 37%;
-    --mingos-red: 0 84% 60%;
-    --mingos-light: 0 0% 96%;
-    --mingos-header-start: 220 20% 22%;
-    --mingos-header-end: 220 15% 32%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
-    /* Corporate Mingos colors - Dark theme */
-    --background: 220 15% 8%;
-    --foreground: 0 0% 95%;
-    --card: 220 12% 12%;
-    --card-foreground: 0 0% 95%;
-    --popover: 220 12% 12%;
-    --popover-foreground: 0 0% 95%;
-    --primary: 0 0% 95%;
-    --primary-foreground: 220 15% 8%;
-    --secondary: 220 8% 18%;
-    --secondary-foreground: 0 0% 95%;
-    --muted: 220 8% 18%;
-    --muted-foreground: 220 5% 55%;
-    --accent: 0 84% 60%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 62% 40%;
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 220 8% 22%;
-    --input: 220 8% 22%;
-    --ring: 0 84% 60%;
-    --sidebar-background: 220 10% 10%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 0 84% 60%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 8% 18%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 220 8% 18%;
-    --sidebar-ring: 0 84% 60%;
-
-    --mingos-graphite: 220 8% 55%;
-    --mingos-red: 0 84% 60%;
-    --mingos-light: 220 15% 12%;
-    --mingos-header-start: 220 20% 12%;
-    --mingos-header-end: 220 15% 18%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
@@ -86,10 +117,7 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    line-height: 1.5;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    font-family: 'Montserrat', sans-serif;
   }
 }
 
@@ -145,41 +173,25 @@
 .ai-analysis-content br + br {
   display: none;
 }
-
-/* Dark theme overrides for AI analysis */
-.dark .ai-analysis-content h2 {
-  color: #e2e8f0;
-  border-bottom-color: #4a5568;
-}
-.dark .ai-analysis-content h3 {
-  color: #a0aec0;
-}
-.dark .ai-analysis-content strong {
-  color: #e2e8f0;
+/* Corporate page background — Mingu slate + red abstract pattern */
+.app-bg {
+  background: #f1f5f9 url('./bg-pattern.svg') no-repeat center center fixed;
+  background-size: cover;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Custom scrollbar */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 8px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: hsl(var(--muted));
-  border-radius: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.3);
-  border-radius: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.5);
+/* BRANDBOOK "MAXIMUM" COHESIVE THEME SYSTEM OVERRIDES */
+
+/* Global smooth transition for background and border modifications */
+body, div, section, header, table, tr, td, th, button, input, select, p, span, h1, h2, h3, h4, h5, h6 {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
 }
 
-/* Smooth scroll */
-html {
-  scroll-behavior: smooth;
-}
+@import "./theme-light.css";
+@import "./theme-dark.css";
 
-/* Theme toggle animation */
-.theme-icon {
-  transition: transform 0.3s ease, opacity 0.3s ease;
-}
+
+
+

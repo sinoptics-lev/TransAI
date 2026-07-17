@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="base" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f4f5f7"/>
+      <stop offset="0.55" stop-color="#eef0f3"/>
+      <stop offset="1" stop-color="#e8eaee"/>
+    </linearGradient>
+    <linearGradient id="slate" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#535861" stop-opacity="0.10"/>
+      <stop offset="1" stop-color="#535861" stop-opacity="0.03"/>
+    </linearGradient>
+    <linearGradient id="slate2" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#43484f" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#535861" stop-opacity="0.02"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#base)"/>
+
+  <!-- Large M-chevron inspired ribbons, top-right -->
+  <g opacity="0.9">
+    <path d="M1920 0 L1920 260 L1560 540 L1280 320 L1280 200 L1560 420 L1920 140 Z" fill="url(#slate)"/>
+    <path d="M1920 180 L1920 300 L1700 470 L1560 370 L1560 300 L1700 390 Z" fill="#535861" opacity="0.05"/>
+  </g>
+
+  <!-- Red accent shard (echoes the logo's red mark) -->
+  <path d="M1920 60 L1920 190 L1860 240 L1860 110 Z" fill="#ff4949" opacity="0.14"/>
+
+  <!-- Bottom-left chevron echo -->
+  <g opacity="0.85">
+    <path d="M0 1080 L0 820 L360 560 L620 760 L620 880 L360 700 L0 940 Z" fill="url(#slate2)"/>
+    <path d="M0 900 L0 780 L220 630 L360 730 L360 800 L220 710 Z" fill="#43484f" opacity="0.04"/>
+  </g>
+  <path d="M0 1020 L0 890 L60 840 L60 970 Z" fill="#ff4949" opacity="0.10"/>
+
+  <!-- Soft floating shards, very subtle -->
+  <g opacity="0.06">
+    <path d="M900 180 l90 -52 l90 52 l-90 52 Z" fill="#535861"/>
+    <path d="M480 420 l60 -35 l60 35 l-60 35 Z" fill="#535861"/>
+    <path d="M1380 760 l70 -40 l70 40 l-70 40 Z" fill="#535861"/>
+    <path d="M1180 400 l26 -15 l26 15 l-26 15 Z" fill="#ff4949"/>
+  </g>
+
+  <!-- Fine diagonal hairlines -->
+  <g stroke="#535861" stroke-width="1" opacity="0.05">
+    <line x1="200" y1="0" x2="900" y2="1080"/>
+    <line x1="1200" y1="0" x2="1900" y2="1080"/>
+    <line x1="600" y1="0" x2="1300" y2="1080"/>
+  </g>
+</svg>

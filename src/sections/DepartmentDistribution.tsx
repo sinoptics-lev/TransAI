@@ -29,14 +29,14 @@ export function DepartmentDistribution({ data, defaultOpen = false }: Props) {
                   value: dept.mingos,
                   displayValue: `${dept.mingos}`,
                   pct: dept.mingosPct,
-                  colorClass: 'bg-gradient-to-r from-emerald-500 to-emerald-600',
+                  colorClass: 'bg-[#0e9f6e] dark:bg-[#3da885]',
                 },
                 {
                   label: 'Без Мингос',
                   value: dept.noMingos,
                   displayValue: `${dept.noMingos}`,
                   pct: dept.noMingosPct,
-                  colorClass: 'bg-gradient-to-r from-amber-400 to-amber-500',
+                  colorClass: 'bg-[#d97706] dark:bg-[#dca725]',
                 },
               ]}
             />
@@ -44,13 +44,13 @@ export function DepartmentDistribution({ data, defaultOpen = false }: Props) {
         })}
       </div>
 
-      <div className="flex gap-6 mt-3 text-[0.9rem] text-muted-foreground">
+      <div className="flex gap-6 mt-3 text-[0.9rem] dept-legend-text font-semibold">
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-emerald-500" />
+          <div className="w-3 h-3 rounded-full bg-[#0e9f6e] dark:bg-[#3da885]" />
           <span>С участием Мингос</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-amber-400" />
+          <div className="w-3 h-3 rounded-full bg-[#f59e0b] dark:bg-[#dca725]" />
           <span>Без участия Мингос</span>
         </div>
       </div>

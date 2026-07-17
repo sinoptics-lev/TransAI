@@ -14,7 +14,7 @@ export function CollapsibleSection({ title, children, defaultOpen = false, delay
 
   return (
     <motion.section
-      className="bg-card rounded-xl p-6 mb-5 shadow-sm border border-border"
+      className="bg-white rounded-xl p-6 mb-5 shadow-sm"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay }}
@@ -23,8 +23,8 @@ export function CollapsibleSection({ title, children, defaultOpen = false, delay
         className="w-full flex items-center justify-between gap-2 cursor-pointer bg-transparent border-none p-0"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <h2 className="text-[1.1rem] font-bold text-foreground flex items-center gap-2">
-          <span className="w-1 h-[22px] bg-mingos-red rounded-sm flex-shrink-0" />
+        <h2 className="text-[1.1rem] font-bold text-[#1a202c] flex items-center gap-2">
+          <span className="w-1 h-[22px] bg-[#1a56db] rounded-sm flex-shrink-0" />
           <span className="text-left">{title}</span>
         </h2>
         <motion.div
@@ -32,7 +32,7 @@ export function CollapsibleSection({ title, children, defaultOpen = false, delay
           transition={{ duration: 0.25 }}
           className="flex-shrink-0"
         >
-          <ChevronDown className="w-5 h-5 text-muted-foreground" />
+          <ChevronDown className="w-5 h-5 text-[#718096]" />
         </motion.div>
       </button>
 

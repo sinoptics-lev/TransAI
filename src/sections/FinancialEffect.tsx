@@ -32,14 +32,14 @@ export function FinancialEffect({ data, defaultOpen = false }: Props) {
                   value: dept.fromReduction,
                   displayValue: fmt(dept.fromReduction),
                   pct: dept.fromReductionPct,
-                  colorClass: 'bg-gradient-to-r from-emerald-500 to-emerald-600',
+                  colorClass: 'bg-[#0e9f6e] dark:bg-[#3da885]',
                 },
                 {
                   label: 'Высвобождение без сокр.',
                   value: fromLabor,
                   displayValue: fmt(fromLabor),
                   pct: 100 - dept.fromReductionPct,
-                  colorClass: 'bg-gradient-to-r from-blue-400 to-blue-500',
+                  colorClass: 'bg-[#1a56db] dark:bg-[#1c64f2]',
                 },
               ]}
             />
@@ -47,13 +47,13 @@ export function FinancialEffect({ data, defaultOpen = false }: Props) {
         })}
       </div>
 
-      <div className="flex gap-6 mt-3 text-[0.9rem] text-muted-foreground">
+      <div className="flex gap-6 mt-3 text-[0.9rem] dept-legend-text font-semibold">
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-emerald-500" />
+          <div className="w-3 h-3 rounded-full bg-[#0e9f6e] dark:bg-[#3da885]" />
           <span>От сокращения (сокр. ×3,4 млн)</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-blue-400" />
+          <div className="w-3 h-3 rounded-full bg-[#1a56db] dark:bg-[#1c64f2]" />
           <span>Высвобождение без сокр. (высв. ×3,4 млн)</span>
         </div>
       </div>

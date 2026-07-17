@@ -1,0 +1,227 @@
+:root {
+  --dark-bg-primary: #0e1013;
+  --dark-text-primary: #f8fafc;
+  --dark-text-secondary: #f1f5f9;
+  --dark-text-muted: #94a3b8;
+  --dark-border: #3e4654;
+  
+  --dark-chart-green: #3da885;
+  --dark-chart-amber: #fbbf24;
+  --dark-chart-blue: #1e3a8a;
+  --dark-chart-red: #ff4949;
+  
+  --dark-badge-profitable-bg: rgba(16, 185, 129, 0.12);
+  --dark-badge-profitable-text: #3da885;
+  --dark-badge-unprofitable-bg: rgba(255, 73, 73, 0.12);
+  --dark-badge-unprofitable-text: #ff4949;
+  --dark-badge-average-bg: rgba(59, 130, 246, 0.12);
+  --dark-badge-average-text: #60a5fa;
+  --dark-badge-efficient-bg: rgba(245, 158, 11, 0.12);
+  --dark-badge-efficient-text: #fbbf24;
+}
+
+/* Специфичные стили для Темной Темы (Dark Theme) */
+html.dark {
+  --background: 222 47% 6%;
+  --foreground: 210 40% 98%;
+  --card: 218 13% 20%;
+  --card-foreground: 210 40% 98%;
+  --border: 218 13% 28%;
+}
+
+html.dark body {
+  background-color: var(--dark-bg-primary) !important;
+  color: var(--dark-text-primary) !important;
+}
+
+html.dark .app-bg {
+  background: transparent !important;
+}
+
+/* Изменение непрозрачности и высококлассный стеклянный эффект для карточек в темной теме */
+html.dark .bg-white,
+html.dark [class*="bg-background"],
+html.dark [class*="bg-popover"],
+html.dark [class*="bg-card"] {
+  background-color: rgba(22, 25, 30, 0.85) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  color: var(--dark-text-primary) !important;
+  border-color: rgba(62, 70, 84, 0.45) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Улучшение видимости текста разных оттенков серого в темном режиме */
+html.dark .text-\[\#1a202c\],
+html.dark .text-\[\#2D323A\],
+html.dark .text-slate-900,
+html.dark .text-gray-900,
+html.dark .text-slate-800,
+html.dark .text-gray-800 {
+  color: var(--dark-text-primary) !important;
+}
+
+html.dark .text-\[\#718096\],
+html.dark .text-\[\#555E6B\],
+html.dark .text-slate-500,
+html.dark .text-gray-500,
+html.dark .text-slate-400,
+html.dark .text-gray-400 {
+  color: var(--dark-text-muted) !important;
+}
+
+html.dark .text-\[\#4a5568\],
+html.dark .text-slate-600,
+html.dark .text-gray-600 {
+  color: var(--dark-text-secondary) !important;
+}
+
+/* Форматирование таблиц в темном режиме */
+html.dark table,
+html.dark thead,
+html.dark tbody,
+html.dark tr,
+html.dark th,
+html.dark td {
+  border-color: var(--dark-border) !important;
+}
+
+html.dark th {
+  background-color: #0f172a !important;
+  color: var(--dark-text-secondary) !important;
+}
+
+html.dark tr:hover {
+  background-color: rgba(255, 255, 255, 0.03) !important;
+}
+
+html.dark .bg-slate-50,
+html.dark .bg-gray-50 {
+  background-color: #1e2229 !important;
+}
+
+html.dark .border,
+html.dark .border-slate-200,
+html.dark .border-gray-200,
+html.dark .border-gray-100 {
+  border-color: var(--dark-border) !important;
+}
+
+/* Цветовые акценты (Crimson в темной теме) */
+html.dark .text-\[\#1a56db\] {
+  color: #ff4949 !important;
+}
+
+html.dark .bg-\[\#1a56db\] {
+  background-color: #ff4949 !important;
+}
+
+html.dark .border-\[\#1a56db\] {
+  border-color: #ff4949 !important;
+}
+
+/* Блоки ИИ-аналитики в темной теме */
+html.dark .ai-analysis-content h1 {
+  color: #ff4949 !important;
+  border-bottom-color: #ef4444 !important;
+}
+
+html.dark .ai-analysis-content h2 {
+  color: var(--dark-text-primary) !important;
+  border-bottom-color: #334155 !important;
+}
+
+html.dark .ai-analysis-content h3 {
+  color: var(--dark-text-secondary) !important;
+}
+
+html.dark .ai-analysis-content strong {
+  color: #ffffff !important;
+}
+
+/* Выпадающие списки и поля ввода */
+html.dark select,
+html.dark input,
+html.dark textarea {
+  background-color: #111827 !important;
+  color: var(--dark-text-primary) !important;
+  border-color: #334155 !important;
+}
+
+html.dark select option {
+  background-color: #111827 !important;
+  color: var(--dark-text-primary) !important;
+}
+
+/* Метки и легенда графиков в темной теме */
+html.dark .dept-label {
+  color: var(--dark-text-primary) !important;
+}
+
+html.dark .dept-label-num {
+  color: var(--dark-text-muted) !important;
+}
+
+html.dark .dept-legend-text {
+  color: var(--dark-text-muted) !important;
+}
+
+html.dark .contrast-heading {
+  color: var(--dark-text-primary) !important;
+}
+
+html.dark .contrast-text-main {
+  color: var(--dark-text-secondary) !important;
+}
+
+html.dark .contrast-text-muted {
+  color: var(--dark-text-muted) !important;
+}
+
+/* Всплывающее описание для Темной Темы (Dark Theme Tooltip) */
+html.dark .kpi-tooltip {
+  background-color: rgba(22, 25, 30, 0.95) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  border-color: rgba(62, 70, 84, 0.6) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3) !important;
+}
+
+html.dark .kpi-tooltip-title {
+  color: var(--dark-text-primary) !important;
+}
+
+html.dark .kpi-tooltip-muted {
+  color: var(--dark-text-muted) !important;
+}
+
+html.dark .kpi-tooltip-value {
+  color: var(--dark-text-secondary) !important;
+}
+
+html.dark .kpi-tooltip-divider {
+  border-color: var(--dark-border) !important;
+}
+
+html.dark .kpi-tooltip-total {
+  color: #a78bfa !important; /* Мягкий сиреневый в темной теме */
+}
+
+html.dark .kpi-tooltip-arrow {
+  background-color: rgba(22, 25, 30, 0.95) !important;
+  border-color: rgba(62, 70, 84, 0.6) !important;
+}
+
+/* Стили для модального окна аналитики в темной теме */
+html.dark .analytics-modal {
+  background-color: #1A202E !important;
+  color: #f8fafc !important;
+  border-color: #2D3748 !important;
+}
+html.dark .analytics-modal-title {
+  color: #ffffff !important;
+}
+html.dark .analytics-modal-link {
+  color: #3b82f6 !important;
+}
+

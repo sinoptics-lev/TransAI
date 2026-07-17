@@ -9,41 +9,84 @@ const API_BASE = './api';
 
 let _apiAvailable: boolean | null = null;
 
-/** Check if PHP API is available. Uses ping.php (simple health check). */
+/**
+ * Some hostings (e.g. Hostiman bot management) intercept the first request
+ * to *.php with a JS challenge (302 -> verify page -> cookie "bm=1").
+ * fetch() cannot execute that JS, so we load the URL in a hidden iframe:
+ * the browser passes the challenge inside it and sets the cookie for the
+ * whole domain, after which normal fetch() requests succeed.
+ */
+function passHostingBotCheck(url: string): Promise<void> {
+  return new Promise((resolve) => {
+    try {
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        setTimeout(() => {
+          try { iframe.remove(); } catch { /* ignore */ }
+          resolve();
+        }, 300);
+      };
+      // Give the challenge JS time to set the cookie and redirect
+      iframe.onload = () => setTimeout(finish, 1500);
+      iframe.src = url;
+      document.body.appendChild(iframe);
+      setTimeout(finish, 5000); // safety timeout
+    } catch {
+      resolve();
+    }
+  });
+}
+
+/** Check if PHP API is available. Uses ping.php (no DB needed). */
 export async function isApiAvailable(): Promise<boolean> {
   if (_apiAvailable !== null) return _apiAvailable;
-  try {
-    const ctrl = new AbortController();
-    const timeout = setTimeout(() => ctrl.abort(), 5000);
-    const response = await fetch(`${API_BASE}/ping.php`, {
-      method: 'GET',
-      signal: ctrl.signal,
-    });
-    clearTimeout(timeout);
-    
-    if (!response.ok) {
-      _apiAvailable = false;
-      return false;
-    }
-    
-    const text = await response.text();
-    // Check if response is JSON (not HTML/PHP source)
-    if (text.trim().startsWith('<?php') || text.trim().startsWith('<')) {
-      _apiAvailable = false;
-      return false;
-    }
-    
+
+  const checkUrl = `${API_BASE}/ping.php`;
+
+  const tryFetch = async (): Promise<boolean | 'challenge'> => {
     try {
+      const ctrl = new AbortController();
+      const timeout = setTimeout(() => ctrl.abort(), 5000);
+      const response = await fetch(checkUrl, {
+        method: 'GET',
+        signal: ctrl.signal,
+      });
+      clearTimeout(timeout);
+      const text = await response.text();
+      // HTML response = hosting bot-check page or PHP source (misconfig)
+      if (text.trim().startsWith('<?php') || text.trim().startsWith('<')) {
+        return 'challenge';
+      }
       const data = JSON.parse(text);
-      _apiAvailable = data.ok === true;
+      // Any JSON response (ok:true or ok:false) means PHP works
+      return typeof data.ok === 'boolean';
     } catch {
-      _apiAvailable = false;
+      return false;
     }
-    return _apiAvailable;
-  } catch {
-    _apiAvailable = false;
-    return false;
+  };
+
+  let result = await tryFetch();
+
+  if (result === 'challenge') {
+    // Try to pass the hosting bot-check via hidden iframe (once per session)
+    if (!sessionStorage.getItem('api_botcheck_tried')) {
+      sessionStorage.setItem('api_botcheck_tried', '1');
+      await passHostingBotCheck(`${checkUrl}?_t=${Date.now()}`);
+      result = await tryFetch();
+    }
+    if (result === 'challenge') {
+      console.warn('[API] PHP not executing, got HTML/PHP source');
+      result = false;
+    }
   }
+
+  _apiAvailable = result === true;
+  console.log('[API] Available:', _apiAvailable, 'base:', API_BASE);
+  return _apiAvailable;
 }
 
 export interface ApiProject {
@@ -126,6 +169,7 @@ async function safeJsonParse(response: Response): Promise<unknown | null> {
   try {
     const text = await response.text();
     if (text.trim().startsWith('<?php') || text.trim().startsWith('<')) {
+      console.warn('[API] Got HTML/PHP instead of JSON');
       return null;
     }
     return JSON.parse(text);
@@ -140,17 +184,18 @@ async function safeJsonParse(response: Response): Promise<unknown | null> {
  */
 export async function validateSingleFile(file: File, type: 'rm' | 'db' | 'ai'): Promise<SingleValidationResult> {
   if (type === 'ai') {
-    return { ok: true, valid: true, headers: [], missing: [], message: '✓ Загружен' };
+    return { ok: true, valid: true, headers: [], missing: [], message: '\u2713 \u0417\u0430\u0433\u0440\u0443\u0436\u0435\u043d' };
   }
 
   const available = await isApiAvailable();
   if (!available) {
+    console.warn('[API] PHP not available, skipping validation for', type);
     return {
       ok: true,
       valid: true,
       headers: [],
       missing: [],
-      message: 'PHP недоступен. Валидация пропущена.',
+      message: 'PHP \u043d\u0435\u0434\u043e\u0441\u0442\u0443\u043f\u0435\u043d. \u0412\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u044f \u043f\u0440\u043e\u043f\u0443\u0449\u0435\u043d\u0430.',
     };
   }
 
@@ -159,6 +204,7 @@ export async function validateSingleFile(file: File, type: 'rm' | 'db' | 'ai'): 
   formData.append('type', type);
 
   const url = `${API_BASE}/validate_single.php`;
+  console.log('[API] Validating', type, 'at', url, 'file:', file.name, file.size);
 
   try {
     const ctrl = new AbortController();
@@ -170,6 +216,8 @@ export async function validateSingleFile(file: File, type: 'rm' | 'db' | 'ai'): 
     });
     clearTimeout(timeout);
 
+    console.log('[API] Response status:', response.status);
+
     const data = await safeJsonParse(response);
 
     if (data === null) {
@@ -178,7 +226,7 @@ export async function validateSingleFile(file: File, type: 'rm' | 'db' | 'ai'): 
         valid: true,
         headers: [],
         missing: [],
-        message: 'Сервер не поддерживает валидацию. Пропущено.',
+        message: '\u0421\u0435\u0440\u0432\u0435\u0440 \u043d\u0435 \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u0442 \u0432\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u044e. \u041f\u0440\u043e\u043f\u0443\u0449\u0435\u043d\u043e.',
       };
     }
 
@@ -202,13 +250,14 @@ export async function validateSingleFile(file: File, type: 'rm' | 'db' | 'ai'): 
       message: (d.message as string) || 'OK',
       type: d.type as string | undefined,
     };
-  } catch {
+  } catch (err) {
+    console.warn('[API] Validation error:', err);
     return {
       ok: true,
       valid: true,
       headers: [],
       missing: [],
-      message: 'Ошибка сети. Валидация пропущена.',
+      message: '\u041e\u0448\u0438\u0431\u043a\u0430 \u0441\u0435\u0442\u0438. \u0412\u0430\u043b\u0438\u0434\u0430\u0446\u0438\u044f \u043f\u0440\u043e\u043f\u0443\u0449\u0435\u043d\u0430.',
     };
   }
 }
@@ -228,8 +277,8 @@ export async function uploadProjects(
       batchId: 0,
       inserted: 0,
       previousDeleted: 0,
-      message: 'PHP API недоступен. Сохранение в БД невозможно.',
-      error: 'API недоступно',
+      message: 'PHP API \u043d\u0435\u0434\u043e\u0441\u0442\u0443\u043f\u0435\u043d. \u0421\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u0438\u0435 \u0432 \u0411\u0414 \u043d\u0435\u0432\u043e\u0437\u043c\u043e\u0436\u043d\u043e.',
+      error: 'API \u043d\u0435\u0434\u043e\u0441\u0442\u0443\u043f\u043d\u043e',
     };
   }
 
@@ -239,6 +288,14 @@ export async function uploadProjects(
     const payload: Record<string, unknown> = { projects, meta };
     if (aiData && Object.keys(aiData).length > 0) {
       payload.aiData = aiData;
+    }
+
+    // Debug: log first project keys before sending
+    if (Array.isArray(projects) && projects.length > 0) {
+      const first = projects[0] as Record<string, unknown>;
+      console.log('[API] Upload first project keys:', Object.keys(first));
+      console.log('[API] createdDate:', first.createdDate ?? 'MISSING');
+      console.log('[API] updatedDate:', first.updatedDate ?? 'MISSING');
     }
 
     const response = await fetch(`${API_BASE}/upload.php`, {
@@ -256,7 +313,7 @@ export async function uploadProjects(
         batchId: 0,
         inserted: 0,
         previousDeleted: 0,
-        message: 'Сервер не поддерживает PHP.',
+        message: '\u0421\u0435\u0440\u0432\u0435\u0440 \u043d\u0435 \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u0442 PHP.',
         error: 'PHP not available',
       };
     }
@@ -286,7 +343,7 @@ export async function uploadProjects(
       batchId: 0,
       inserted: 0,
       previousDeleted: 0,
-      message: 'Ошибка: ' + (err instanceof Error ? err.message : String(err)),
+      message: '\u041e\u0448\u0438\u0431\u043a\u0430: ' + (err instanceof Error ? err.message : String(err)),
       error: err instanceof Error ? err.message : String(err),
     };
   }
@@ -332,6 +389,7 @@ export async function fetchProjects(): Promise<ProjectsResult> {
       return {
         ok: false,
         projects: [],
+        aiData: {},
         count: 0,
         latestBatch: null,
         error: (d.error as string) || 'Failed to fetch',
@@ -347,7 +405,7 @@ export async function fetchProjects(): Promise<ProjectsResult> {
     };
   } catch {
     return {
-      ok: true,
+      ok: false,
       projects: [],
       aiData: {},
       count: 0,
@@ -392,8 +450,8 @@ export function apiProjectToFrontend(
     reductionActual: Number(apiProject.reductionActual) || 0,
     releaseOther: Number(apiProject.releaseOther) || 0,
     reductionDate: apiProject.reductionDate,
-    createdDate: (apiProject as Record<string, unknown>).createdDate as string || '',
-    updatedDate: (apiProject as Record<string, unknown>).updatedDate as string || '',
+    createdDate: (apiProject as any).createdDate || '',
+    updatedDate: (apiProject as any).updatedDate || '',
     aiVerdict: apiProject.aiVerdict || 'Нет данных',
     aiReasoning: apiProject.aiReasoning || '',
     aiAnalysis: apiProject.aiAnalysis,
