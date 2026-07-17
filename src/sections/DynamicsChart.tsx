@@ -57,11 +57,11 @@ function formatShortDate(d: Date): string {
 
 // Safe date extractors with fallback to startDate
 function getCreatedDate(p: Project): string {
-  return p.createdDate || p.startDate || '';
+  return p.createdDate || (p as any).created_data || (p as any).created_date || p.startDate || '';
 }
 
 function getUpdatedDate(p: Project): string {
-  return p.updatedDate || p.endDate || p.startDate || '';
+  return p.updatedDate || (p as any).updated_date || p.endDate || p.startDate || '';
 }
 
 export function DynamicsChart({ projects, theme }: Props) {

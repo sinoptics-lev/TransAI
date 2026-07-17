@@ -33,6 +33,8 @@ export interface Project {
   reductionDate?: string;
   createdDate?: string;
   updatedDate?: string;
+  created_data?: string;
+  updated_date?: string;
   /** AI Analysis data - key-value pairs from AI analysis file */
   aiAnalysis?: AIAnalysis;
   /** AI verdict: рекомендован / не рекомендован / Нет данных */

@@ -18,7 +18,8 @@ try {
             economic_effect AS economicEffect, delta, non_material_effect AS nonMaterialEffect,
             rm_status AS rmStatus, db_status AS dbStatus, db_leader AS dbLeader, db_responsible AS dbResponsible,
             labor_claimed AS laborClaimed, reduction_actual AS reductionActual, release_other AS releaseOther,
-            reduction_date AS reductionDate, ai_verdict AS aiVerdict, ai_reasoning AS aiReasoning
+            reduction_date AS reductionDate, ai_verdict AS aiVerdict, ai_reasoning AS aiReasoning,
+            created_date AS createdDate, updated_date AS updatedDate
         FROM projects WHERE is_deleted = 0 ORDER BY rm_id ASC
     ");
     $projects = $stmt->fetchAll();

@@ -122,6 +122,8 @@ export interface ApiProject {
   aiVerdict: string;
   aiReasoning: string;
   createdAt: string;
+  createdDate?: string;
+  updatedDate?: string;
 }
 
 export interface SingleValidationResult {
